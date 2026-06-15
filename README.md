@@ -47,9 +47,14 @@ npm run test:e2e  # Playwright happy-path (needs a display)
 ## Docs
 
 - [Getting started](docs/getting-started.md)
+- [Architecture](docs/architecture.md)
 - [Distribution & release pipeline](docs/distribution.md)
 - [Product blueprint](docs/Pink-Battleship-Blueprint.md)
 
 ## Tech
 
 Electron · React · TypeScript · Tailwind · SQLite (SQLCipher) · Vitest · electron-builder. Distributed as signed Windows/macOS installers from GitHub Releases. Not affiliated with any third-party platform.
+
+## License
+
+Proprietary — Copyright © 2026 Corner Spore. All rights reserved. See [LICENSE](LICENSE).
