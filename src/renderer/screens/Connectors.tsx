@@ -23,6 +23,7 @@ export default function Connectors() {
   const qc = useQueryClient()
   const setRoute = useUi((s) => s.setRoute)
   const [busy, setBusy] = useState<string | null>(null)
+  const [liveUrl, setLiveUrl] = useState('')
 
   const invalidate = async () => {
     await qc.invalidateQueries({ queryKey: qk.connectors })
@@ -50,8 +51,24 @@ export default function Connectors() {
     }
   }
 
+  const connectLive = async () => {
+    setBusy('live')
+    try {
+      await pb.connectors.connectChaturbate(liveUrl)
+      try {
+        await pb.connectors.sync('chaturbate')
+      } catch {
+        // invalid URL/token -> connector is marked broken and shown in the list
+      }
+      setLiveUrl('')
+      await invalidate()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   const list = q.data ?? []
-  const hasChaturbate = list.some((c) => c.id === 'chaturbate-mock')
+  const hasChaturbate = list.some((c) => c.platformId === 'chaturbate')
 
   return (
     <div>
@@ -70,6 +87,31 @@ export default function Connectors() {
           <button className="pb-btn pb-btn-primary" onClick={connectChaturbate} disabled={busy === 'connect'}>
             {busy === 'connect' ? 'Connecting…' : 'Connect (demo)'}
           </button>
+        </div>
+      )}
+
+      {!hasChaturbate && (
+        <div className="pb-card" style={{ padding: '14px 16px', marginBottom: 14 }}>
+          <div style={{ fontSize: 14, marginBottom: 4 }}>Chaturbate — live</div>
+          <div style={{ fontSize: 12, color: 'var(--pb-text-muted)', marginBottom: 8, lineHeight: 1.5 }}>
+            Paste your Events API URL (Chaturbate → Account → Events API). It's stored in your OS keychain, and only this
+            one host is ever contacted.
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              className="pb-input"
+              placeholder="https://eventsapi.chaturbate.com/events/<user>/<token>/"
+              value={liveUrl}
+              onChange={(e) => setLiveUrl(e.target.value)}
+            />
+            <button
+              className="pb-btn pb-btn-primary"
+              onClick={connectLive}
+              disabled={busy === 'live' || !liveUrl.includes('eventsapi.chaturbate.com')}
+            >
+              {busy === 'live' ? 'Connecting…' : 'Connect'}
+            </button>
+          </div>
         </div>
       )}
 

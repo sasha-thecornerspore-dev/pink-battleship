@@ -20,6 +20,8 @@ export interface ChaturbateDriverOptions {
   fixture?: ChaturbateEvent[]
   gateway?: NetworkGateway
   tokenValueUsd?: number
+  eventsUrl?: string
+  fetchImpl?: typeof fetch
 }
 
 /**
@@ -31,6 +33,7 @@ export class ChaturbateDriver implements Connector {
   readonly driver = 'official' as const
   readonly riskLabel = 'official-low' as const
   readonly dataFlows = [CHATURBATE_HOST]
+  private nextUrl?: string
 
   constructor(private readonly opts: ChaturbateDriverOptions = {}) {}
 
@@ -61,10 +64,17 @@ export class ChaturbateDriver implements Connector {
 
   private async fetchLive(): Promise<ChaturbateEvent[]> {
     if (!this.opts.gateway) throw new Error('Chaturbate live mode requires a network gateway')
-    return this.opts.gateway.request({ host: CHATURBATE_HOST, purpose: 'poll-events' }, async () => {
-      // Live long-poll is wired in a later slice; for now the path is proven, not active.
-      return []
+    const url = this.nextUrl ?? this.opts.eventsUrl
+    if (!url) throw new Error('Chaturbate live mode requires an events URL')
+    const doFetch = this.opts.fetchImpl ?? fetch
+    const host = new URL(url).hostname
+    const data = await this.opts.gateway.request({ host, purpose: 'poll-events' }, async () => {
+      const res = await doFetch(url)
+      if (!res.ok) throw new Error(`Chaturbate events poll failed: ${res.status}`)
+      return (await res.json()) as { events?: ChaturbateEvent[]; nextUrl?: string }
     })
+    this.nextUrl = data.nextUrl
+    return data.events ?? []
   }
 
   async healthCheck(): Promise<ConnectorStatus> {

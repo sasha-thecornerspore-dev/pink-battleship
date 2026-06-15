@@ -126,22 +126,40 @@ export class AppServices {
     return info
   }
 
+  connectChaturbate(eventsUrl: string): ConnectorInfo {
+    this.secrets.set('chaturbate.eventsUrl', eventsUrl)
+    const info: ConnectorInfo = {
+      id: 'chaturbate',
+      platformId: 'chaturbate',
+      driver: 'official',
+      riskLabel: 'official-low',
+      status: 'needs_sync',
+      lastSyncAt: null,
+    }
+    this.requireDb().upsertConnector(info)
+    return info
+  }
+
   async syncConnector(connectorId: string): Promise<{ inserted: number }> {
     const db = this.requireDb()
     const info = db.listConnectors().find((c) => c.id === connectorId)
     if (!info) throw new Error('Unknown connector')
-    if (info.platformId === 'chaturbate') {
-      const driver = new ChaturbateDriver({
-        mock: true,
-        fixture: chaturbateFixture as ChaturbateEvent[],
-        gateway: this.gateway,
-      })
+    if (info.platformId !== 'chaturbate') return { inserted: 0 }
+
+    const driver =
+      info.id === 'chaturbate-mock'
+        ? new ChaturbateDriver({ mock: true, fixture: chaturbateFixture as ChaturbateEvent[], gateway: this.gateway })
+        : new ChaturbateDriver({ gateway: this.gateway, eventsUrl: this.secrets.get('chaturbate.eventsUrl') ?? undefined })
+
+    try {
       const txs = await driver.sync({ connectorId, platformId: info.platformId })
       db.insertTransactions(txs)
       db.upsertConnector({ ...info, status: 'healthy', lastSyncAt: new Date().toISOString() })
       return { inserted: txs.length }
+    } catch (err) {
+      db.upsertConnector({ ...info, status: 'broken' })
+      throw err
     }
-    return { inserted: 0 }
   }
 
   importCsv(req: ImportCsvRequest): ImportCsvResult {

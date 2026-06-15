@@ -11,6 +11,7 @@ const api: PbApiContract = {
   connectors: {
     list: () => ipcRenderer.invoke(IPC.connectorsList),
     connectChaturbateMock: () => ipcRenderer.invoke(IPC.connectorsConnectChaturbateMock),
+    connectChaturbate: (eventsUrl) => ipcRenderer.invoke(IPC.connectorsConnectChaturbate, eventsUrl),
     sync: (connectorId) => ipcRenderer.invoke(IPC.connectorsSync, connectorId),
   },
   imports: {

@@ -115,6 +115,11 @@ export function createDemoBackend(): PbApiContract {
         db.upsertConnector(info)
         return Promise.resolve(info)
       },
+      connectChaturbate: () => {
+        const info: ConnectorInfo = { id: 'chaturbate', platformId: 'chaturbate', driver: 'official', riskLabel: 'official-low', status: 'needs_sync', lastSyncAt: null }
+        db.upsertConnector(info)
+        return Promise.resolve(info)
+      },
       sync: async (id) => {
         const info = db.listConnectors().find((c) => c.id === id)
         if (info?.platformId === 'chaturbate') {
