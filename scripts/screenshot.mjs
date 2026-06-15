@@ -58,6 +58,10 @@ await page.getByRole('button', { name: 'Fans' }).click()
 await page.getByText(/ranked by net/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'fans.png') })
 
+await page.getByRole('button', { name: 'Stats' }).click()
+await page.getByText(/best time to earn/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'stats.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByRole('button', { name: 'dark' }).click()
 await page.getByRole('button', { name: 'Dashboard' }).click()

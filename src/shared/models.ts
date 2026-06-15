@@ -85,5 +85,31 @@ export interface Fan {
   note: string
 }
 
+export interface EarningsPoint {
+  date: string
+  net: number
+  ma: number
+}
+
+export interface HeatCell {
+  dow: number
+  hour: number
+  net: number
+}
+
+export interface StatsSummary {
+  totalNet: number
+  activeDays: number
+  avgPerActiveDay: number
+  bestDay: { date: string; net: number } | null
+  bestHour: { dow: number; hour: number; net: number } | null
+}
+
+export interface StatsReport {
+  series: EarningsPoint[]
+  heatmap: HeatCell[]
+  summary: StatsSummary
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

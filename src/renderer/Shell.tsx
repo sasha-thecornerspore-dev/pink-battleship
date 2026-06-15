@@ -3,6 +3,7 @@ import { useUi } from './store/ui'
 import { pb } from './lib/api'
 import Sidebar from './components/Sidebar'
 import Dashboard from './screens/Dashboard'
+import Stats from './screens/Stats'
 import Fans from './screens/Fans'
 import Connectors from './screens/Connectors'
 import Import from './screens/Import'
@@ -28,6 +29,7 @@ export default function Shell() {
       <Sidebar />
       <main style={{ flex: 1, padding: '22px 26px', overflow: 'auto' }}>
         {route === 'dashboard' && <Dashboard />}
+        {route === 'stats' && <Stats />}
         {route === 'fans' && <Fans />}
         {route === 'connectors' && <Connectors />}
         {route === 'import' && <Import />}

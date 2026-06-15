@@ -27,4 +27,6 @@ export function registerIpc(services: AppServices): void {
 
   ipcMain.handle(IPC.fansList, () => services.listFans())
   ipcMain.handle(IPC.fansSetNote, (_e, fanId: string, note: string) => services.setFanNote(fanId, note))
+
+  ipcMain.handle(IPC.statsReport, () => services.statsReport())
 }

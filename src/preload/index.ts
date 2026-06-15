@@ -34,6 +34,9 @@ const api: PbApiContract = {
     list: () => ipcRenderer.invoke(IPC.fansList),
     setNote: (fanId, note) => ipcRenderer.invoke(IPC.fansSetNote, fanId, note),
   },
+  stats: {
+    report: () => ipcRenderer.invoke(IPC.statsReport),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

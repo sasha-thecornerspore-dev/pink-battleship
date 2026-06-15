@@ -22,6 +22,7 @@ export const qk = {
   rates: ['rates'] as const,
   privacy: ['privacy'] as const,
   fans: ['fans'] as const,
+  stats: ['stats'] as const,
 }
 
 export const usePnl = () => useQuery({ queryKey: qk.pnl, queryFn: () => pb.pnl.summary() })
@@ -29,3 +30,4 @@ export const useConnectors = () => useQuery({ queryKey: qk.connectors, queryFn: 
 export const useRates = () => useQuery({ queryKey: qk.rates, queryFn: () => pb.rates.list() })
 export const usePrivacy = () => useQuery({ queryKey: qk.privacy, queryFn: () => pb.privacy.dataFlows() })
 export const useFans = () => useQuery({ queryKey: qk.fans, queryFn: () => pb.fans.list() })
+export const useStats = () => useQuery({ queryKey: qk.stats, queryFn: () => pb.stats.report() })

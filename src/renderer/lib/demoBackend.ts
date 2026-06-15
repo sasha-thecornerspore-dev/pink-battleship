@@ -3,6 +3,7 @@ import type { ConnectorInfo, RateRule, ThemeId, ThemeMode, Transaction } from '@
 import { InMemoryDatabase } from '@core/db/inMemoryDatabase'
 import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
+import { StatsService } from '@core/stats/statsService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
@@ -44,21 +45,21 @@ function seed(): void {
   db.upsertConnector({ id: 'chaturbate-mock', platformId: 'chaturbate', driver: 'official', riskLabel: 'official-low', status: 'healthy', lastSyncAt: '2026-05-30T00:00:00Z' })
   db.upsertConnector({ id: 'manual:onlyfans', platformId: 'onlyfans', driver: 'manual', riskLabel: 'manual-none', status: 'healthy', lastSyncAt: '2026-05-30T00:00:00Z' })
   db.insertTransactions([
-    tx('chaturbate', 420, 'kingmaker', '2026-05-22', 'tip'),
-    tx('chaturbate', 380, 'kingmaker', '2026-05-28', 'tip'),
-    tx('chaturbate', 120, 'rosegold', '2026-05-24', 'tip'),
-    tx('chaturbate', 60, 'rosegold', '2026-05-29', 'tip'),
-    tx('chaturbate', 25, 'shy_guy', '2026-05-23', 'tip'),
-    tx('chaturbate', 15, 'shy_guy', '2026-05-30', 'tip'),
-    tx('onlyfans', 200, 'amber_vip', '2026-05-21', 'ppv'),
-    tx('onlyfans', 24.99, 'amber_vip', '2026-05-25', 'sub'),
-    tx('onlyfans', 24.99, 'danny', '2026-05-22', 'sub'),
-    tx('onlyfans', 80, 'lux', '2026-05-26', 'ppv'),
-    tx('fansly', 150, 'kingmaker', '2026-05-27', 'ppv'),
-    tx('fansly', 45, 'fae', '2026-05-23', 'sub'),
-    tx('manyvids', 60, 'collector', '2026-05-24', 'clip'),
-    tx('manyvids', 90, 'collector', '2026-05-29', 'clip'),
-    tx('manyvids', 35, 'oneoff', '2026-05-26', 'clip'),
+    tx('chaturbate', 420, 'kingmaker', '2026-05-22T21:30:00Z', 'tip'),
+    tx('chaturbate', 380, 'kingmaker', '2026-05-28T22:15:00Z', 'tip'),
+    tx('chaturbate', 120, 'rosegold', '2026-05-24T20:45:00Z', 'tip'),
+    tx('chaturbate', 60, 'rosegold', '2026-05-29T23:05:00Z', 'tip'),
+    tx('chaturbate', 25, 'shy_guy', '2026-05-23T19:20:00Z', 'tip'),
+    tx('chaturbate', 15, 'shy_guy', '2026-05-30T21:50:00Z', 'tip'),
+    tx('onlyfans', 200, 'amber_vip', '2026-05-21T14:00:00Z', 'ppv'),
+    tx('onlyfans', 24.99, 'amber_vip', '2026-05-25T20:00:00Z', 'sub'),
+    tx('onlyfans', 24.99, 'danny', '2026-05-22T09:30:00Z', 'sub'),
+    tx('onlyfans', 80, 'lux', '2026-05-26T22:40:00Z', 'ppv'),
+    tx('fansly', 150, 'kingmaker', '2026-05-27T21:10:00Z', 'ppv'),
+    tx('fansly', 45, 'fae', '2026-05-23T18:00:00Z', 'sub'),
+    tx('manyvids', 60, 'collector', '2026-05-24T23:30:00Z', 'clip'),
+    tx('manyvids', 90, 'collector', '2026-05-29T20:10:00Z', 'clip'),
+    tx('manyvids', 35, 'oneoff', '2026-05-26T15:00:00Z', 'clip'),
   ])
 }
 
@@ -152,6 +153,9 @@ export function createDemoBackend(): PbApiContract {
         new FanService(db).setNote(fanId, note)
         return Promise.resolve()
       },
+    },
+    stats: {
+      report: () => Promise.resolve(new StatsService(db).report()),
     },
   }
 }
