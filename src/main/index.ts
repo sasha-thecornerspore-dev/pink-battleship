@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { AppServices } from './services'
 import { registerIpc } from './ipc'
+import { initAutoUpdate } from './updater'
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -34,6 +35,7 @@ app.whenReady().then(() => {
   const services = new AppServices()
   registerIpc(services)
   createWindow()
+  initAutoUpdate()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

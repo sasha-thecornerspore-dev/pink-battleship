@@ -5,6 +5,7 @@
   "author": "Corner Spore",
   "license": "UNLICENSED",
   "private": true,
+  "repository": "https://github.com/cornerspore/pink-battleship",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -38,6 +39,7 @@
     "zustand": "^5.0.14"
   },
   "dependencies": {
-    "better-sqlite3-multiple-ciphers": "^12.10.0"
+    "better-sqlite3-multiple-ciphers": "^12.10.0",
+    "electron-updater": "^6.8.9"
   }
 }

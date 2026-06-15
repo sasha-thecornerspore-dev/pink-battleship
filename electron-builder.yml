@@ -1,0 +1,44 @@
+appId: dev.cornerspore.pinkbattleship
+productName: Pink Battleship
+copyright: © Corner Spore
+
+directories:
+  output: release
+  buildResources: build
+
+# electron-vite emits to out/. Native modules must stay unpacked from the asar.
+files:
+  - out/**/*
+  - package.json
+asarUnpack:
+  - "**/*.node"
+
+# Publish to GitHub Releases (also the electron-updater feed). Owner/repo are
+# inferred from the `repository` field in package.json — update it to your repo.
+publish:
+  provider: github
+  releaseType: release
+
+win:
+  target:
+    - nsis
+    - portable
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # Windows code signing: configure Azure Trusted Signing here (see docs/distribution.md).
+  # azureSignOptions is supplied via env/secrets in CI; do not commit certs.
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Pink Battleship
+  createDesktopShortcut: always
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.business
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # Notarization via notarytool (App Store Connect API key) is supplied in CI.
