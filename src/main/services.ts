@@ -19,12 +19,13 @@ import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
+import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode } from '@shared/models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -257,6 +258,32 @@ export class AppServices {
   }
   removeSchedule(id: string): void {
     new ScheduleService(this.requireDb()).remove(id)
+  }
+
+  // --- compliance ---
+
+  complianceOverview(): ComplianceOverview {
+    const svc = new ComplianceService(this.requireDb())
+    const net = this.pnlSummary().net
+    const rate = 0.28
+    return {
+      records: svc.records(),
+      custodian: svc.custodian(),
+      custodianStatement: svc.custodianStatement(),
+      tax: { net, rate, setAside: ComplianceService.taxSetAside(net, rate) },
+    }
+  }
+  addComplianceRecord(input: NewRecord): TwoFiveSevenRecord {
+    return new ComplianceService(this.requireDb()).addRecord(input)
+  }
+  removeComplianceRecord(id: string): void {
+    new ComplianceService(this.requireDb()).removeRecord(id)
+  }
+  setCustodian(info: CustodianInfo): void {
+    new ComplianceService(this.requireDb()).setCustodian(info)
+  }
+  dmcaNotice(input: DmcaInput): string {
+    return ComplianceService.dmca(input)
   }
 
   // --- rates ---

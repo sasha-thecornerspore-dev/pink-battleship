@@ -7,6 +7,7 @@ import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { ScheduleService } from '@core/schedule/scheduleService'
+import { ComplianceService } from '@core/compliance/complianceService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
@@ -202,6 +203,29 @@ export function createDemoBackend(): PbApiContract {
         db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
         return Promise.resolve()
       },
+    },
+    compliance: {
+      overview: () => {
+        const svc = new ComplianceService(db)
+        const net = new PnlService(db).summary().net
+        const rate = 0.28
+        return Promise.resolve({
+          records: svc.records(),
+          custodian: svc.custodian(),
+          custodianStatement: svc.custodianStatement(),
+          tax: { net, rate, setAside: ComplianceService.taxSetAside(net, rate) },
+        })
+      },
+      addRecord: (input) => Promise.resolve(new ComplianceService(db).addRecord(input)),
+      removeRecord: (id) => {
+        new ComplianceService(db).removeRecord(id)
+        return Promise.resolve()
+      },
+      setCustodian: (info) => {
+        new ComplianceService(db).setCustodian(info)
+        return Promise.resolve()
+      },
+      dmca: (input) => Promise.resolve(ComplianceService.dmca(input)),
     },
     schedule: {
       list: () => Promise.resolve(new ScheduleService(db).list()),

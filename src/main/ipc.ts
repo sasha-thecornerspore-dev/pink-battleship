@@ -45,4 +45,10 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.scheduleCreate, (_e, input) => services.createSchedule(input))
   ipcMain.handle(IPC.scheduleSetStatus, (_e, id: string, status) => services.setScheduleStatus(id, status))
   ipcMain.handle(IPC.scheduleRemove, (_e, id: string) => services.removeSchedule(id))
+
+  ipcMain.handle(IPC.complianceOverview, () => services.complianceOverview())
+  ipcMain.handle(IPC.complianceAddRecord, (_e, input) => services.addComplianceRecord(input))
+  ipcMain.handle(IPC.complianceRemoveRecord, (_e, id: string) => services.removeComplianceRecord(id))
+  ipcMain.handle(IPC.complianceSetCustodian, (_e, info) => services.setCustodian(info))
+  ipcMain.handle(IPC.complianceDmca, (_e, input) => services.dmcaNotice(input))
 }

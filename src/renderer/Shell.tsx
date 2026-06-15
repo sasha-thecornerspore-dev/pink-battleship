@@ -11,6 +11,7 @@ import Calendar from './screens/Calendar'
 import Connectors from './screens/Connectors'
 import Import from './screens/Import'
 import Settings from './screens/Settings'
+import Compliance from './screens/Compliance'
 
 export default function Shell() {
   const route = useUi((s) => s.route)
@@ -39,6 +40,7 @@ export default function Shell() {
         {route === 'calendar' && <Calendar />}
         {route === 'connectors' && <Connectors />}
         {route === 'import' && <Import />}
+        {route === 'compliance' && <Compliance />}
         {route === 'settings' && <Settings />}
       </main>
     </div>

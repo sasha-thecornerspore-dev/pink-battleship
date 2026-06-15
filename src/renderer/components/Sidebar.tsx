@@ -11,9 +11,9 @@ const NAV: { id: Route; label: string }[] = [
   { id: 'calendar', label: 'Calendar' },
   { id: 'connectors', label: 'Connectors' },
   { id: 'import', label: 'Import' },
+  { id: 'compliance', label: 'Compliance' },
   { id: 'settings', label: 'Settings' },
 ]
-const FUTURE = ['Compliance']
 
 export default function Sidebar() {
   const route = useUi((s) => s.route)
@@ -78,24 +78,6 @@ export default function Sidebar() {
           </button>
         )
       })}
-
-      <div
-        style={{
-          marginTop: 14,
-          padding: '4px 10px',
-          fontSize: 11,
-          color: 'var(--pb-text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-        }}
-      >
-        Coming soon
-      </div>
-      {FUTURE.map((f) => (
-        <div key={f} style={{ padding: '7px 10px', fontSize: 13, color: 'var(--pb-text-muted)', opacity: 0.55 }}>
-          {f}
-        </div>
-      ))}
 
       <div style={{ flex: 1 }} />
       <button

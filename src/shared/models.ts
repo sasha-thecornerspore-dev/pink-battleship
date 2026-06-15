@@ -178,5 +178,30 @@ export interface ScheduledItem {
   status: ScheduleStatus
 }
 
+export interface TwoFiveSevenRecord {
+  id: string
+  legalName: string
+  aliases: string
+  dob: string
+  idType: string
+  idRef: string
+  productionDates: string
+  addedAt: string
+}
+
+export interface ComplianceOverview {
+  records: TwoFiveSevenRecord[]
+  custodian: { name: string; address: string }
+  custodianStatement: string
+  tax: { net: number; rate: number; setAside: number }
+}
+
+export interface DmcaInput {
+  workTitle: string
+  infringingUrl: string
+  originalUrl: string
+  name: string
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

@@ -56,6 +56,13 @@ const api: PbApiContract = {
     setStatus: (id, status) => ipcRenderer.invoke(IPC.scheduleSetStatus, id, status),
     remove: (id) => ipcRenderer.invoke(IPC.scheduleRemove, id),
   },
+  compliance: {
+    overview: () => ipcRenderer.invoke(IPC.complianceOverview),
+    addRecord: (input) => ipcRenderer.invoke(IPC.complianceAddRecord, input),
+    removeRecord: (id) => ipcRenderer.invoke(IPC.complianceRemoveRecord, id),
+    setCustodian: (info) => ipcRenderer.invoke(IPC.complianceSetCustodian, info),
+    dmca: (input) => ipcRenderer.invoke(IPC.complianceDmca, input),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

@@ -1,4 +1,4 @@
-import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode } from './models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -79,6 +79,13 @@ export interface PbApiContract {
     setStatus(id: string, status: ScheduleStatus): Promise<void>
     remove(id: string): Promise<void>
   }
+  compliance: {
+    overview(): Promise<ComplianceOverview>
+    addRecord(input: Omit<TwoFiveSevenRecord, 'id' | 'addedAt'>): Promise<TwoFiveSevenRecord>
+    removeRecord(id: string): Promise<void>
+    setCustodian(info: { name: string; address: string }): Promise<void>
+    dmca(input: DmcaInput): Promise<string>
+  }
 }
 
 export const IPC = {
@@ -112,4 +119,9 @@ export const IPC = {
   scheduleCreate: 'schedule:create',
   scheduleSetStatus: 'schedule:set-status',
   scheduleRemove: 'schedule:remove',
+  complianceOverview: 'compliance:overview',
+  complianceAddRecord: 'compliance:add-record',
+  complianceRemoveRecord: 'compliance:remove-record',
+  complianceSetCustodian: 'compliance:set-custodian',
+  complianceDmca: 'compliance:dmca',
 } as const

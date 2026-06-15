@@ -26,6 +26,7 @@ export const qk = {
   galleries: ['galleries'] as const,
   assistant: ['assistant'] as const,
   schedule: ['schedule'] as const,
+  compliance: ['compliance'] as const,
 }
 
 export const usePnl = () => useQuery({ queryKey: qk.pnl, queryFn: () => pb.pnl.summary() })
