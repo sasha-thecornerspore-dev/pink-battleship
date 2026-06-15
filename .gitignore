@@ -31,6 +31,7 @@ coverage/
 playwright-report/
 test-results/
 .vitest/
+verify-shots/
 
 # OS / editor
 .DS_Store
