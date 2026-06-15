@@ -1,5 +1,7 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
+import { AppServices } from './services'
+import { registerIpc } from './ipc'
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -29,7 +31,8 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('ping', () => 'pong')
+  const services = new AppServices()
+  registerIpc(services)
   createWindow()
 
   app.on('activate', () => {
