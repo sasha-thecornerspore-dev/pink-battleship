@@ -6,6 +6,7 @@ import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
+import { ScheduleService } from '@core/schedule/scheduleService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
@@ -78,6 +79,13 @@ function seed(): void {
     { filename: 'ppv_may_a.jpg', mediaKind: 'image', nsfw: true, tags: ['ppv'], postedTo: [], dims: '1920×1080' },
     { filename: 'ppv_may_b.mp4', mediaKind: 'video', nsfw: true, tags: ['ppv'], postedTo: [], dims: '2:30' },
   ])
+  const sched = new ScheduleService(db)
+  sched.create({ platformId: 'chaturbate', kind: 'go_live', title: 'Evening cam show', caption: '', scheduledAt: '2026-06-15T20:00:00Z' })
+  sched.create({ platformId: 'onlyfans', kind: 'post', title: 'Blue lingerie set drop', caption: 'New drop 🩷 link in bio', scheduledAt: '2026-06-16T18:00:00Z' })
+  sched.create({ platformId: 'onlyfans', kind: 'mass_dm', title: 'PPV blast to lapsed fans', caption: '', scheduledAt: '2026-06-17T16:00:00Z' })
+  sched.create({ platformId: 'reddit', kind: 'promo', title: 'SFW teaser cross-post', caption: '', scheduledAt: '2026-06-17T19:00:00Z' })
+  sched.create({ platformId: 'fansly', kind: 'post', title: 'Shower set', caption: '', scheduledAt: '2026-06-18T21:00:00Z' })
+  sched.create({ platformId: 'manyvids', kind: 'post', title: 'Custom clip release', caption: '', scheduledAt: '2026-06-20T17:00:00Z' })
 }
 
 function privacyReport(): PrivacyReport {
@@ -192,6 +200,18 @@ export function createDemoBackend(): PbApiContract {
       },
       setBoundaries: (boundaries) => {
         db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
+        return Promise.resolve()
+      },
+    },
+    schedule: {
+      list: () => Promise.resolve(new ScheduleService(db).list()),
+      create: (input) => Promise.resolve(new ScheduleService(db).create(input)),
+      setStatus: (id, status) => {
+        new ScheduleService(db).setStatus(id, status)
+        return Promise.resolve()
+      },
+      remove: (id) => {
+        new ScheduleService(db).remove(id)
         return Promise.resolve()
       },
     },

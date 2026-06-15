@@ -1,4 +1,4 @@
-import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from './models'
+import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -73,6 +73,12 @@ export interface PbApiContract {
     config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[] }>
     setBoundaries(boundaries: string[]): Promise<void>
   }
+  schedule: {
+    list(): Promise<ScheduledItem[]>
+    create(input: Omit<ScheduledItem, 'id' | 'status'>): Promise<ScheduledItem>
+    setStatus(id: string, status: ScheduleStatus): Promise<void>
+    remove(id: string): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -102,4 +108,8 @@ export const IPC = {
   assistantDraft: 'assistant:draft',
   assistantConfig: 'assistant:config',
   assistantSetBoundaries: 'assistant:set-boundaries',
+  scheduleList: 'schedule:list',
+  scheduleCreate: 'schedule:create',
+  scheduleSetStatus: 'schedule:set-status',
+  scheduleRemove: 'schedule:remove',
 } as const

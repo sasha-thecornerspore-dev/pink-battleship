@@ -7,6 +7,7 @@ import Stats from './screens/Stats'
 import Fans from './screens/Fans'
 import Galleries from './screens/Galleries'
 import Assistant from './screens/Assistant'
+import Calendar from './screens/Calendar'
 import Connectors from './screens/Connectors'
 import Import from './screens/Import'
 import Settings from './screens/Settings'
@@ -35,6 +36,7 @@ export default function Shell() {
         {route === 'fans' && <Fans />}
         {route === 'galleries' && <Galleries />}
         {route === 'assistant' && <Assistant />}
+        {route === 'calendar' && <Calendar />}
         {route === 'connectors' && <Connectors />}
         {route === 'import' && <Import />}
         {route === 'settings' && <Settings />}

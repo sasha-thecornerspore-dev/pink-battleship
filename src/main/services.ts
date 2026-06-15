@@ -18,12 +18,13 @@ import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
+import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from '@shared/models'
+import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -241,6 +242,21 @@ export class AppServices {
   }
   setAssistantBoundaries(boundaries: string[]): void {
     this.requireDb().setSetting('assistant:boundaries', JSON.stringify(boundaries))
+  }
+
+  // --- scheduler / calendar ---
+
+  listSchedule(): ScheduledItem[] {
+    return new ScheduleService(this.requireDb()).list()
+  }
+  createSchedule(input: NewScheduledItem): ScheduledItem {
+    return new ScheduleService(this.requireDb()).create(input)
+  }
+  setScheduleStatus(id: string, status: ScheduleStatus): void {
+    new ScheduleService(this.requireDb()).setStatus(id, status)
+  }
+  removeSchedule(id: string): void {
+    new ScheduleService(this.requireDb()).remove(id)
   }
 
   // --- rates ---

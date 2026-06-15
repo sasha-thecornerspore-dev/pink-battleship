@@ -165,5 +165,18 @@ export interface DraftResult {
   notes: string[]
 }
 
+export type ScheduleKind = 'post' | 'mass_dm' | 'go_live' | 'promo'
+export type ScheduleStatus = 'planned' | 'posted' | 'skipped'
+
+export interface ScheduledItem {
+  id: string
+  platformId: string
+  kind: ScheduleKind
+  title: string
+  caption: string
+  scheduledAt: string
+  status: ScheduleStatus
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

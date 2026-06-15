@@ -50,6 +50,12 @@ const api: PbApiContract = {
     config: () => ipcRenderer.invoke(IPC.assistantConfig),
     setBoundaries: (boundaries) => ipcRenderer.invoke(IPC.assistantSetBoundaries, boundaries),
   },
+  schedule: {
+    list: () => ipcRenderer.invoke(IPC.scheduleList),
+    create: (input) => ipcRenderer.invoke(IPC.scheduleCreate, input),
+    setStatus: (id, status) => ipcRenderer.invoke(IPC.scheduleSetStatus, id, status),
+    remove: (id) => ipcRenderer.invoke(IPC.scheduleRemove, id),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

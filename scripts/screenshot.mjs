@@ -72,6 +72,10 @@ await page.getByRole('button', { name: 'Draft' }).click()
 await page.getByText(/Routed via/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'assistant.png') })
 
+await page.getByRole('button', { name: 'Calendar' }).click()
+await page.getByText(/Plan posts/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'calendar.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByRole('button', { name: 'dark' }).click()
 await page.getByRole('button', { name: 'Dashboard' }).click()

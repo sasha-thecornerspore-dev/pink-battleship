@@ -40,4 +40,9 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.assistantDraft, (_e, req) => services.draftAssistant(req))
   ipcMain.handle(IPC.assistantConfig, () => services.assistantConfig())
   ipcMain.handle(IPC.assistantSetBoundaries, (_e, boundaries: string[]) => services.setAssistantBoundaries(boundaries))
+
+  ipcMain.handle(IPC.scheduleList, () => services.listSchedule())
+  ipcMain.handle(IPC.scheduleCreate, (_e, input) => services.createSchedule(input))
+  ipcMain.handle(IPC.scheduleSetStatus, (_e, id: string, status) => services.setScheduleStatus(id, status))
+  ipcMain.handle(IPC.scheduleRemove, (_e, id: string) => services.removeSchedule(id))
 }
