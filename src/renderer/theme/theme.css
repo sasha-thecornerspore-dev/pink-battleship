@@ -118,3 +118,46 @@ body {
 button {
   font-family: inherit;
 }
+
+.pb-card {
+  background: var(--pb-surface);
+  border: 1px solid var(--pb-border);
+  border-radius: 12px;
+}
+.pb-input {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--pb-border);
+  background: var(--pb-surface-2);
+  color: var(--pb-text);
+  font-size: 14px;
+  outline: none;
+}
+.pb-input:focus {
+  border-color: var(--pb-primary);
+}
+.pb-btn {
+  border: 1px solid var(--pb-border);
+  background: var(--pb-surface);
+  color: var(--pb-text);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pb-btn:hover {
+  background: var(--pb-surface-2);
+}
+.pb-btn-primary {
+  background: var(--pb-primary);
+  border-color: var(--pb-primary);
+  color: #fff;
+}
+.pb-btn-primary:hover {
+  background: var(--pb-primary-deep);
+}
+.pb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

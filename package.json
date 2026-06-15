@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "pack": "electron-vite build && electron-builder --dir",
-    "dist": "electron-vite build && electron-builder"
+    "dist": "electron-vite build && electron-builder",
+    "rebuild": "electron-builder install-app-deps"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
