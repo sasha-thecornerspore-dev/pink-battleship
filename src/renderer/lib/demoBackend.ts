@@ -4,6 +4,7 @@ import { InMemoryDatabase } from '@core/db/inMemoryDatabase'
 import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
+import { GalleryService } from '@core/gallery/galleryService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
@@ -60,6 +61,21 @@ function seed(): void {
     tx('manyvids', 60, 'collector', '2026-05-24T23:30:00Z', 'clip'),
     tx('manyvids', 90, 'collector', '2026-05-29T20:10:00Z', 'clip'),
     tx('manyvids', 35, 'oneoff', '2026-05-26T15:00:00Z', 'clip'),
+  ])
+  const gallery = new GalleryService(db)
+  gallery.galleries()
+  gallery.addAssets('master', [
+    { filename: 'shoot_blue_01.jpg', mediaKind: 'image', nsfw: true, tags: ['lingerie', 'blue'], postedTo: ['onlyfans', 'fansly'], dims: '1920×1080' },
+    { filename: 'shoot_blue_02.jpg', mediaKind: 'image', nsfw: true, tags: ['lingerie', 'blue'], postedTo: ['onlyfans'], dims: '1920×1080' },
+    { filename: 'teaser_clip.mp4', mediaKind: 'video', nsfw: false, tags: ['teaser', 'sfw'], postedTo: ['reddit', 'x'], dims: '0:18' },
+    { filename: 'bts_selfie.jpg', mediaKind: 'image', nsfw: false, tags: ['bts', 'sfw'], postedTo: ['x'], dims: '1080×1080' },
+    { filename: 'custom_anna.mp4', mediaKind: 'video', nsfw: true, tags: ['custom', 'ppv'], postedTo: [], dims: '4:12' },
+    { filename: 'shower_set_01.jpg', mediaKind: 'image', nsfw: true, tags: ['shower'], postedTo: ['manyvids'], dims: '1440×1920' },
+  ])
+  const ppv = gallery.createSet('May PPV')
+  gallery.addAssets(ppv.id, [
+    { filename: 'ppv_may_a.jpg', mediaKind: 'image', nsfw: true, tags: ['ppv'], postedTo: [], dims: '1920×1080' },
+    { filename: 'ppv_may_b.mp4', mediaKind: 'video', nsfw: true, tags: ['ppv'], postedTo: [], dims: '2:30' },
   ])
 }
 
@@ -156,6 +172,19 @@ export function createDemoBackend(): PbApiContract {
     },
     stats: {
       report: () => Promise.resolve(new StatsService(db).report()),
+    },
+    galleries: {
+      list: () => Promise.resolve(new GalleryService(db).galleries()),
+      createSet: (name) => Promise.resolve(new GalleryService(db).createSet(name)),
+      assets: (galleryId) => Promise.resolve(new GalleryService(db).assets(galleryId)),
+      setTags: (assetId, tags) => {
+        new GalleryService(db).setTags(assetId, tags)
+        return Promise.resolve()
+      },
+      togglePosted: (assetId, platformId) => {
+        new GalleryService(db).togglePosted(assetId, platformId)
+        return Promise.resolve()
+      },
     },
   }
 }

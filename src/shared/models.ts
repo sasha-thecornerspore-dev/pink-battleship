@@ -111,5 +111,29 @@ export interface StatsReport {
   summary: StatsSummary
 }
 
+export type GalleryKind = 'master' | 'set'
+
+export interface Gallery {
+  id: string
+  name: string
+  kind: GalleryKind
+  createdAt: string
+  assetCount: number
+}
+
+export type AssetMediaKind = 'image' | 'video'
+
+export interface Asset {
+  id: string
+  galleryId: string
+  filename: string
+  mediaKind: AssetMediaKind
+  nsfw: boolean
+  tags: string[]
+  postedTo: string[]
+  dims: string
+  addedAt: string
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

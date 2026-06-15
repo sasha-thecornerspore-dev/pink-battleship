@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './screens/Dashboard'
 import Stats from './screens/Stats'
 import Fans from './screens/Fans'
+import Galleries from './screens/Galleries'
 import Connectors from './screens/Connectors'
 import Import from './screens/Import'
 import Settings from './screens/Settings'
@@ -31,6 +32,7 @@ export default function Shell() {
         {route === 'dashboard' && <Dashboard />}
         {route === 'stats' && <Stats />}
         {route === 'fans' && <Fans />}
+        {route === 'galleries' && <Galleries />}
         {route === 'connectors' && <Connectors />}
         {route === 'import' && <Import />}
         {route === 'settings' && <Settings />}

@@ -37,6 +37,13 @@ const api: PbApiContract = {
   stats: {
     report: () => ipcRenderer.invoke(IPC.statsReport),
   },
+  galleries: {
+    list: () => ipcRenderer.invoke(IPC.galleriesList),
+    createSet: (name) => ipcRenderer.invoke(IPC.galleriesCreateSet, name),
+    assets: (galleryId) => ipcRenderer.invoke(IPC.galleriesAssets, galleryId),
+    setTags: (assetId, tags) => ipcRenderer.invoke(IPC.assetsSetTags, assetId, tags),
+    togglePosted: (assetId, platformId) => ipcRenderer.invoke(IPC.assetsTogglePosted, assetId, platformId),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

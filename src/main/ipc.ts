@@ -29,4 +29,10 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.fansSetNote, (_e, fanId: string, note: string) => services.setFanNote(fanId, note))
 
   ipcMain.handle(IPC.statsReport, () => services.statsReport())
+
+  ipcMain.handle(IPC.galleriesList, () => services.listGalleries())
+  ipcMain.handle(IPC.galleriesCreateSet, (_e, name: string) => services.createGallerySet(name))
+  ipcMain.handle(IPC.galleriesAssets, (_e, galleryId: string) => services.listAssets(galleryId))
+  ipcMain.handle(IPC.assetsSetTags, (_e, assetId: string, tags: string[]) => services.setAssetTags(assetId, tags))
+  ipcMain.handle(IPC.assetsTogglePosted, (_e, assetId: string, platformId: string) => services.toggleAssetPosted(assetId, platformId))
 }

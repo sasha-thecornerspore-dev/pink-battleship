@@ -16,12 +16,13 @@ import {
 import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
+import { GalleryService } from '@core/gallery/galleryService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { ConnectorInfo, EgressEntry, Fan, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from '@shared/models'
+import type { Asset, ConnectorInfo, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -181,6 +182,24 @@ export class AppServices {
 
   statsReport(): StatsReport {
     return new StatsService(this.requireDb()).report()
+  }
+
+  // --- galleries (DAM) ---
+
+  listGalleries(): Gallery[] {
+    return new GalleryService(this.requireDb()).galleries()
+  }
+  createGallerySet(name: string): Gallery {
+    return new GalleryService(this.requireDb()).createSet(name)
+  }
+  listAssets(galleryId: string): Asset[] {
+    return new GalleryService(this.requireDb()).assets(galleryId)
+  }
+  setAssetTags(assetId: string, tags: string[]): void {
+    new GalleryService(this.requireDb()).setTags(assetId, tags)
+  }
+  toggleAssetPosted(assetId: string, platformId: string): void {
+    new GalleryService(this.requireDb()).togglePosted(assetId, platformId)
   }
 
   // --- rates ---

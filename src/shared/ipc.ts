@@ -1,4 +1,4 @@
-import type { ConnectorInfo, EgressEntry, Fan, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from './models'
+import type { Asset, ConnectorInfo, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -60,6 +60,13 @@ export interface PbApiContract {
   stats: {
     report(): Promise<StatsReport>
   }
+  galleries: {
+    list(): Promise<Gallery[]>
+    createSet(name: string): Promise<Gallery>
+    assets(galleryId: string): Promise<Asset[]>
+    setTags(assetId: string, tags: string[]): Promise<void>
+    togglePosted(assetId: string, platformId: string): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -80,4 +87,9 @@ export const IPC = {
   fansList: 'fans:list',
   fansSetNote: 'fans:set-note',
   statsReport: 'stats:report',
+  galleriesList: 'galleries:list',
+  galleriesCreateSet: 'galleries:create-set',
+  galleriesAssets: 'galleries:assets',
+  assetsSetTags: 'assets:set-tags',
+  assetsTogglePosted: 'assets:toggle-posted',
 } as const

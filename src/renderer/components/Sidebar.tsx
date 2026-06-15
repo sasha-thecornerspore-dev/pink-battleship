@@ -6,11 +6,12 @@ const NAV: { id: Route; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'stats', label: 'Stats' },
   { id: 'fans', label: 'Fans' },
+  { id: 'galleries', label: 'Galleries' },
   { id: 'connectors', label: 'Connectors' },
   { id: 'import', label: 'Import' },
   { id: 'settings', label: 'Settings' },
 ]
-const FUTURE = ['Galleries', 'Assistant', 'Calendar', 'Compliance']
+const FUTURE = ['Assistant', 'Calendar', 'Compliance']
 
 export default function Sidebar() {
   const route = useUi((s) => s.route)
