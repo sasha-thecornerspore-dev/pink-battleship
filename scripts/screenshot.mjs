@@ -1,13 +1,13 @@
-// Dev helper: render the built renderer (out/renderer) with a mocked window.pb
-// and capture screenshots. Run: npm run build, then `node scripts/screenshot.mjs`.
+// Dev helper: drive the built renderer (out/renderer) through its in-memory demo
+// backend in headless Chromium and capture screenshots of the real flow.
+// Run: npm run build, then `node scripts/screenshot.mjs`.
 import http from 'node:http'
 import { readFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, extname, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from '@playwright/test'
 
-const here = fileURLToPath(import.meta.url)
-const repo = join(dirname(here), '..')
+const repo = join(dirname(fileURLToPath(import.meta.url)), '..')
 const root = join(repo, 'out', 'renderer')
 const outDir = join(repo, 'verify-shots')
 mkdirSync(outDir, { recursive: true })
@@ -37,60 +37,32 @@ const server = http.createServer((req, res) => {
 })
 
 await new Promise((r) => server.listen(0, r))
-const port = server.address().port
-const url = `http://localhost:${port}/`
-
-const data = {
-  connectors: [
-    { id: 'chaturbate-mock', platformId: 'chaturbate', driver: 'official', riskLabel: 'official-low', status: 'healthy', lastSyncAt: '2026-05-02T00:00:00Z' },
-    { id: 'manual:onlyfans', platformId: 'onlyfans', driver: 'manual', riskLabel: 'manual-none', status: 'healthy', lastSyncAt: '2026-05-02T00:00:00Z' },
-  ],
-  pnl: {
-    gross: 12180, fees: 3760, net: 8420, activeFans: 643,
-    byPlatform: [
-      { platformId: 'chaturbate', driver: 'official', gross: 7820, net: 3910 },
-      { platformId: 'onlyfans', driver: 'manual', gross: 3300, net: 2640 },
-      { platformId: 'fansly', driver: 'manual', gross: 1475, net: 1180 },
-      { platformId: 'manyvids', driver: 'manual', gross: 862, net: 690 },
-    ],
-    dailyNet: [
-      { date: '2026-05-22', net: 180 }, { date: '2026-05-23', net: 240 }, { date: '2026-05-24', net: 210 },
-      { date: '2026-05-25', net: 320 }, { date: '2026-05-26', net: 280 }, { date: '2026-05-27', net: 400 },
-      { date: '2026-05-28', net: 360 }, { date: '2026-05-29', net: 520 }, { date: '2026-05-30', net: 610 },
-    ],
-  },
-}
+const url = `http://localhost:${server.address().port}/`
 
 const browser = await chromium.launch()
 const ctx = await browser.newContext({ viewport: { width: 1180, height: 760 }, deviceScaleFactor: 2 })
+const page = await ctx.newPage()
 
-const unlocked = `(${makeMock.toString()})('unlocked', ${JSON.stringify(data)})`
-const firstrun = `(${makeMock.toString()})('uninitialized', ${JSON.stringify(data)})`
+await page.goto(url)
+await page.getByText(/set your passphrase/i).waitFor({ timeout: 10000 })
+await page.screenshot({ path: join(outDir, 'firstrun.png') })
 
-function makeMock(status, d) {
-  const r = (v) => () => Promise.resolve(v)
-  window.pb = {
-    vault: { status: r(status), setup: r('unlocked'), unlock: r({ ok: true }), lock: r(undefined) },
-    connectors: { list: r(d.connectors), connectChaturbateMock: r(d.connectors[0]), sync: r({ inserted: 3 }) },
-    imports: { csv: r({ inserted: 0, skipped: [] }) },
-    pnl: { summary: r(d.pnl) },
-    rates: { list: r([]), upsert: r(undefined) },
-    settings: { getTheme: r({ theme: 'blush', mode: 'light' }), setTheme: r(undefined) },
-    privacy: { dataFlows: r({ declared: [], log: [] }) },
-  }
-}
+await page.getByPlaceholder('Passphrase (min 8 characters)').fill('demo-passphrase')
+await page.getByPlaceholder('Confirm passphrase').fill('demo-passphrase')
+await page.getByRole('button', { name: /create encrypted vault/i }).click()
 
-const dash = await ctx.newPage()
-await dash.addInitScript(unlocked)
-await dash.goto(url)
-await dash.waitForSelector('text=Net earnings this period', { timeout: 10000 })
-await dash.screenshot({ path: join(outDir, 'dashboard.png') })
+await page.getByText(/net earnings this period/i).waitFor({ timeout: 10000 })
+await page.screenshot({ path: join(outDir, 'dashboard.png') })
 
-const fr = await ctx.newPage()
-await fr.addInitScript(firstrun)
-await fr.goto(url)
-await fr.waitForSelector('text=set your passphrase', { timeout: 10000 })
-await fr.screenshot({ path: join(outDir, 'firstrun.png') })
+await page.getByRole('button', { name: 'Fans' }).click()
+await page.getByText(/ranked by net/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'fans.png') })
+
+await page.getByRole('button', { name: 'Settings' }).click()
+await page.getByRole('button', { name: 'dark' }).click()
+await page.getByRole('button', { name: 'Dashboard' }).click()
+await page.getByText(/net earnings this period/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'dashboard-dark.png') })
 
 await browser.close()
 server.close()

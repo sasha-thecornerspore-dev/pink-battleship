@@ -14,12 +14,13 @@ import {
   type WrappedKey,
 } from '@core/crypto/keyvault'
 import { PnlService } from '@core/pnl/pnlService'
+import { FanService } from '@core/fans/fanService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { ConnectorInfo, EgressEntry, PnlSummary, RateRule, ThemeId, ThemeMode } from '@shared/models'
+import type { ConnectorInfo, EgressEntry, Fan, PnlSummary, RateRule, ThemeId, ThemeMode } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -163,6 +164,16 @@ export class AppServices {
 
   pnlSummary(): PnlSummary {
     return new PnlService(this.requireDb()).summary()
+  }
+
+  // --- fans (rolodex) ---
+
+  listFans(): Fan[] {
+    return new FanService(this.requireDb()).list()
+  }
+
+  setFanNote(fanId: string, note: string): void {
+    new FanService(this.requireDb()).setNote(fanId, note)
   }
 
   // --- rates ---

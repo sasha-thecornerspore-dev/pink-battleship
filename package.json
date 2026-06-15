@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "pack": "electron-vite build && electron-builder --dir",
     "dist": "electron-vite build && electron-builder",
-    "rebuild": "electron-builder install-app-deps"
+    "rebuild": "electron-builder install-app-deps",
+    "prototype": "electron-vite build && node scripts/prototype.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

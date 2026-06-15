@@ -30,6 +30,10 @@ const api: PbApiContract = {
   privacy: {
     dataFlows: () => ipcRenderer.invoke(IPC.privacyDataFlows),
   },
+  fans: {
+    list: () => ipcRenderer.invoke(IPC.fansList),
+    setNote: (fanId, note) => ipcRenderer.invoke(IPC.fansSetNote, fanId, note),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

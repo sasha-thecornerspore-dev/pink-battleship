@@ -24,4 +24,7 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.settingsSetTheme, (_e, pref: ThemePref) => services.setTheme(pref))
 
   ipcMain.handle(IPC.privacyDataFlows, () => services.privacyReport())
+
+  ipcMain.handle(IPC.fansList, () => services.listFans())
+  ipcMain.handle(IPC.fansSetNote, (_e, fanId: string, note: string) => services.setFanNote(fanId, note))
 }

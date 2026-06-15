@@ -71,5 +71,19 @@ export interface EgressEntry {
   purpose: string
 }
 
+export type FanTier = 'whale' | 'vip' | 'regular'
+
+export interface Fan {
+  id: string
+  platformId: PlatformId
+  payerRef: string
+  totalGross: number
+  totalNet: number
+  txCount: number
+  lastSeen: string
+  tier: FanTier
+  note: string
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

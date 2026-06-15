@@ -4,6 +4,7 @@ import { pb, qk } from '../lib/api'
 
 const NAV: { id: Route; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
+  { id: 'fans', label: 'Fans' },
   { id: 'connectors', label: 'Connectors' },
   { id: 'import', label: 'Import' },
   { id: 'settings', label: 'Settings' },

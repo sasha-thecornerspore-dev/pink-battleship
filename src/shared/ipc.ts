@@ -1,4 +1,4 @@
-import type { ConnectorInfo, EgressEntry, PnlSummary, RateRule, ThemeId, ThemeMode } from './models'
+import type { ConnectorInfo, EgressEntry, Fan, PnlSummary, RateRule, ThemeId, ThemeMode } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -53,6 +53,10 @@ export interface PbApiContract {
   privacy: {
     dataFlows(): Promise<PrivacyReport>
   }
+  fans: {
+    list(): Promise<Fan[]>
+    setNote(fanId: string, note: string): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -70,4 +74,6 @@ export const IPC = {
   settingsGetTheme: 'settings:get-theme',
   settingsSetTheme: 'settings:set-theme',
   privacyDataFlows: 'privacy:data-flows',
+  fansList: 'fans:list',
+  fansSetNote: 'fans:set-note',
 } as const
