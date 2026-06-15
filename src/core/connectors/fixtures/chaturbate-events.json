@@ -1,0 +1,26 @@
+[
+  {
+    "method": "tip",
+    "id": "ev1",
+    "timestamp": "2026-05-01T20:14:00Z",
+    "object": { "tip": { "tokens": 100, "message": "love your show" }, "user": { "username": "fan_a" } }
+  },
+  {
+    "method": "tip",
+    "id": "ev2",
+    "timestamp": "2026-05-01T20:40:00Z",
+    "object": { "tip": { "tokens": 500 }, "user": { "username": "whale_b" } }
+  },
+  {
+    "method": "chatMessage",
+    "id": "ev3",
+    "timestamp": "2026-05-01T20:41:00Z",
+    "object": { "user": { "username": "lurker_c" } }
+  },
+  {
+    "method": "tip",
+    "id": "ev4",
+    "timestamp": "2026-05-02T19:05:00Z",
+    "object": { "tip": { "tokens": 35 }, "user": { "username": "fan_a" } }
+  }
+]
