@@ -1,4 +1,4 @@
-import type { Asset, ConnectorInfo, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from './models'
+import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -68,6 +68,11 @@ export interface PbApiContract {
     setTags(assetId: string, tags: string[]): Promise<void>
     togglePosted(assetId: string, platformId: string): Promise<void>
   }
+  assistant: {
+    draft(req: DraftRequest): Promise<DraftResult>
+    config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[] }>
+    setBoundaries(boundaries: string[]): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -94,4 +99,7 @@ export const IPC = {
   galleriesAssets: 'galleries:assets',
   assetsSetTags: 'assets:set-tags',
   assetsTogglePosted: 'assets:toggle-posted',
+  assistantDraft: 'assistant:draft',
+  assistantConfig: 'assistant:config',
+  assistantSetBoundaries: 'assistant:set-boundaries',
 } as const

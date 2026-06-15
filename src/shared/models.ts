@@ -135,5 +135,35 @@ export interface Asset {
   addedAt: string
 }
 
+export type AssistantTask = 'caption' | 'fan_reply' | 'content_idea'
+
+export interface AssistantProvider {
+  id: string
+  label: string
+  explicitOk: boolean
+  local: boolean
+  trains: boolean
+}
+
+export interface AssistantConfig {
+  boundaries: string[]
+}
+
+export interface DraftRequest {
+  task: AssistantTask
+  context: string
+  explicit: boolean
+  persona?: string
+}
+
+export interface DraftResult {
+  ok: boolean
+  blocked?: string
+  route?: string
+  routeLabel?: string
+  text?: string
+  notes: string[]
+}
+
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'

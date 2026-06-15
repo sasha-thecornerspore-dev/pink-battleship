@@ -17,12 +17,13 @@ import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
+import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, ConnectorInfo, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from '@shared/models'
+import type { Asset, AssistantProvider, ConnectorInfo, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, StatsReport, ThemeId, ThemeMode } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -218,6 +219,28 @@ export class AppServices {
   }
   toggleAssetPosted(assetId: string, platformId: string): void {
     new GalleryService(this.requireDb()).togglePosted(assetId, platformId)
+  }
+
+  // --- AI assistant ---
+
+  private assistantAvailable(): string[] {
+    const available = ['local', 'groq']
+    if (this.secrets.get('ai.claudeKey')) available.push('claude')
+    if (this.secrets.get('ai.veniceKey')) available.push('venice')
+    return available
+  }
+  private assistantBoundaries(): string[] {
+    const raw = this.requireDb().getSetting('assistant:boundaries')
+    return raw ? (JSON.parse(raw) as string[]) : []
+  }
+  draftAssistant(req: DraftRequest): DraftResult {
+    return new AssistantService().draft(req, { boundaries: this.assistantBoundaries() }, this.assistantAvailable())
+  }
+  assistantConfig(): { boundaries: string[]; providers: AssistantProvider[]; available: string[] } {
+    return { boundaries: this.assistantBoundaries(), providers: ALL_PROVIDERS, available: this.assistantAvailable() }
+  }
+  setAssistantBoundaries(boundaries: string[]): void {
+    this.requireDb().setSetting('assistant:boundaries', JSON.stringify(boundaries))
   }
 
   // --- rates ---

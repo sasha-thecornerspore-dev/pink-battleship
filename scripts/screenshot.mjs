@@ -66,6 +66,12 @@ await page.getByRole('button', { name: 'Galleries' }).click()
 await page.getByText(/Master gallery/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'galleries.png') })
 
+await page.getByRole('button', { name: 'Assistant' }).click()
+await page.getByPlaceholder(/what's this about/i).fill('new blue lingerie set, Friday drop')
+await page.getByRole('button', { name: 'Draft' }).click()
+await page.getByText(/Routed via/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'assistant.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByRole('button', { name: 'dark' }).click()
 await page.getByRole('button', { name: 'Dashboard' }).click()

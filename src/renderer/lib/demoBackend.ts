@@ -5,6 +5,7 @@ import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
+import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
@@ -177,6 +178,22 @@ export function createDemoBackend(): PbApiContract {
     },
     stats: {
       report: () => Promise.resolve(new StatsService(db).report()),
+    },
+    assistant: {
+      draft: (req) => {
+        const r = db.getSetting('assistant:boundaries')
+        const boundaries = r ? (JSON.parse(r) as string[]) : []
+        return Promise.resolve(new AssistantService().draft(req, { boundaries }, ['local', 'groq']))
+      },
+      config: () => {
+        const r = db.getSetting('assistant:boundaries')
+        const boundaries = r ? (JSON.parse(r) as string[]) : []
+        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: ['local', 'groq'] })
+      },
+      setBoundaries: (boundaries) => {
+        db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
+        return Promise.resolve()
+      },
     },
     galleries: {
       list: () => Promise.resolve(new GalleryService(db).galleries()),

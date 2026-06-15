@@ -45,6 +45,11 @@ const api: PbApiContract = {
     setTags: (assetId, tags) => ipcRenderer.invoke(IPC.assetsSetTags, assetId, tags),
     togglePosted: (assetId, platformId) => ipcRenderer.invoke(IPC.assetsTogglePosted, assetId, platformId),
   },
+  assistant: {
+    draft: (req) => ipcRenderer.invoke(IPC.assistantDraft, req),
+    config: () => ipcRenderer.invoke(IPC.assistantConfig),
+    setBoundaries: (boundaries) => ipcRenderer.invoke(IPC.assistantSetBoundaries, boundaries),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)
