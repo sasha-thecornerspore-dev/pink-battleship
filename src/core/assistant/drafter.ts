@@ -16,6 +16,8 @@ export function draftTemplate(task: AssistantTask, context: string, persona: str
       return `Hey you 😘 so glad you're here. ${c} — want me to send you something a little special? Just say the word.${spice}${tone}`
     case 'content_idea':
       return `Content idea: a themed mini-series around "${c}" — 3 teasers for socials + 1 full PPV. Tease Mon/Wed, drop Fri.${tone}`
+    case 'legal':
+      return `Re: ${c}\n\nThe controlling question turns on the applicable standard in your jurisdiction. In general terms: identify (1) the governing statute or rule, (2) the elements or factors a court weighs, and (3) the documentation that supports your position. Keep contemporaneous records and confirm jurisdiction-specific details with counsel.\n\n— Drafted by your local legal model. Not legal advice.`
     default:
       return c
   }

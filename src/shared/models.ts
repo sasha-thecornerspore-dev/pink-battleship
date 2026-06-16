@@ -137,7 +137,7 @@ export interface Asset {
   addedAt: string
 }
 
-export type AssistantTask = 'caption' | 'fan_reply' | 'content_idea'
+export type AssistantTask = 'caption' | 'fan_reply' | 'content_idea' | 'legal'
 
 export type ProviderTier = 'free-local' | 'free-hosted' | 'paid'
 

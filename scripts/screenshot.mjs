@@ -80,6 +80,12 @@ await page.getByRole('button', { name: 'Compliance' }).click()
 await page.getByText('2257 records vault').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'compliance.png') })
 
+await page.getByPlaceholder(/2257 custodian/i).fill('Do I need a 2257 custodian if I only repost others content?')
+await page.getByRole('button', { name: 'Ask' }).click()
+await page.getByText(/Routed via/i).waitFor({ timeout: 5000 })
+await page.getByText('Legal assistant').scrollIntoViewIfNeeded()
+await page.screenshot({ path: join(outDir, 'legal.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
 await page.getByText('AI providers — free vs paid').scrollIntoViewIfNeeded()

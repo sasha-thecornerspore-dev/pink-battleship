@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { pb, qk, money } from '../lib/api'
-import type { ComplianceOverview, DmcaInput } from '@shared/models'
+import type { ComplianceOverview, DmcaInput, DraftResult } from '@shared/models'
 
 export default function Compliance() {
   const qc = useQueryClient()
@@ -26,6 +26,7 @@ export default function Compliance() {
           <Records data={data} onChange={invalidate} />
           <Tax data={data} />
           <Dmca />
+          <LegalAssistant />
         </>
       )}
     </div>
@@ -118,6 +119,50 @@ function Tax({ data }: { data: ComplianceOverview }) {
       <p style={{ fontSize: 12, color: 'var(--pb-text-muted)', margin: '10px 0 0' }}>
         Rough estimate for US self-employment + income tax. Informational only — confirm with a CPA.
       </p>
+    </div>
+  )
+}
+
+function LegalAssistant() {
+  const [q, setQ] = useState('')
+  const [res, setRes] = useState<DraftResult | null>(null)
+  const [busy, setBusy] = useState(false)
+  const ask = async () => {
+    setBusy(true)
+    try {
+      setRes(await pb.assistant.draft({ task: 'legal', context: q, explicit: false }))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="pb-card" style={{ padding: 16, marginTop: 14 }}>
+      <div style={{ fontSize: 14, marginBottom: 4 }}>Legal assistant</div>
+      <p style={{ fontSize: 12, color: 'var(--pb-text-muted)', margin: '0 0 8px', lineHeight: 1.5 }}>
+        Ask a compliance/legal question or describe a document to draft. Routes to a local SFW model (e.g. your own law
+        LLM) or a paid SFW key — never an explicit backend; fan PII is forced local. Not legal advice.
+      </p>
+      <textarea
+        className="pb-input"
+        placeholder="e.g. Do I need a 2257 custodian if I only repost others' content?"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        style={{ minHeight: 64, marginBottom: 8 }}
+      />
+      <button className="pb-btn pb-btn-primary" onClick={ask} disabled={busy || !q.trim()}>
+        {busy ? 'Thinking…' : 'Ask'}
+      </button>
+      {res &&
+        (res.ok ? (
+          <div style={{ marginTop: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--pb-sage-deep)', background: 'var(--pb-sage-bg)', padding: '3px 9px', borderRadius: 20 }}>
+              Routed via {res.routeLabel}
+            </span>
+            <div style={{ fontSize: 13, lineHeight: 1.5, marginTop: 8, whiteSpace: 'pre-wrap' }}>{res.text}</div>
+          </div>
+        ) : (
+          <div style={{ marginTop: 10, color: 'var(--pb-danger)', fontSize: 13 }}>{res.blocked}</div>
+        ))}
     </div>
   )
 }
