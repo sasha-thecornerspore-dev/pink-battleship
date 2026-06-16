@@ -244,6 +244,10 @@ export class AppServices {
   setAssistantBoundaries(boundaries: string[]): void {
     this.requireDb().setSetting('assistant:boundaries', JSON.stringify(boundaries))
   }
+  setAssistantKey(provider: string, key: string): void {
+    if (key) this.secrets.set(`ai.${provider}Key`, key)
+    else this.secrets.delete(`ai.${provider}Key`)
+  }
 
   // --- scheduler / calendar ---
 

@@ -55,6 +55,7 @@ function seed(): void {
     tx('chaturbate', 60, 'rosegold', '2026-05-29T23:05:00Z', 'tip'),
     tx('chaturbate', 25, 'shy_guy', '2026-05-23T19:20:00Z', 'tip'),
     tx('chaturbate', 15, 'shy_guy', '2026-05-30T21:50:00Z', 'tip'),
+    tx('chaturbate', 40, 'old_flame', '2026-05-04T20:00:00Z', 'tip'),
     tx('onlyfans', 200, 'amber_vip', '2026-05-21T14:00:00Z', 'ppv'),
     tx('onlyfans', 24.99, 'amber_vip', '2026-05-25T20:00:00Z', 'sub'),
     tx('onlyfans', 24.99, 'danny', '2026-05-22T09:30:00Z', 'sub'),
@@ -97,6 +98,13 @@ function privacyReport(): PrivacyReport {
     dataFlows: c.driver === 'official' && c.platformId === 'chaturbate' ? [CHATURBATE_HOST] : [],
   }))
   return { declared, log: db.listEgress(200) }
+}
+
+function demoAiAvailable(): string[] {
+  const a = ['local', 'groq']
+  if (db.getSetting('ai.claudeKey')) a.push('claude')
+  if (db.getSetting('ai.veniceKey')) a.push('venice')
+  return a
 }
 
 export function createDemoBackend(): PbApiContract {
@@ -192,15 +200,19 @@ export function createDemoBackend(): PbApiContract {
       draft: (req) => {
         const r = db.getSetting('assistant:boundaries')
         const boundaries = r ? (JSON.parse(r) as string[]) : []
-        return Promise.resolve(new AssistantService().draft(req, { boundaries }, ['local', 'groq']))
+        return Promise.resolve(new AssistantService().draft(req, { boundaries }, demoAiAvailable()))
       },
       config: () => {
         const r = db.getSetting('assistant:boundaries')
         const boundaries = r ? (JSON.parse(r) as string[]) : []
-        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: ['local', 'groq'] })
+        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: demoAiAvailable() })
       },
       setBoundaries: (boundaries) => {
         db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
+        return Promise.resolve()
+      },
+      setKey: (provider, key) => {
+        db.setSetting(`ai.${provider}Key`, key)
         return Promise.resolve()
       },
     },

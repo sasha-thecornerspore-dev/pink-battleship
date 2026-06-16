@@ -4,6 +4,7 @@ import { netForTransaction } from '../pnl/rateEngine'
 
 const WHALE_NET = 500
 const VIP_NET = 100
+const LAPSED_DAYS = 14
 
 function tierFor(net: number): FanTier {
   if (net >= WHALE_NET) return 'whale'
@@ -40,18 +41,23 @@ export class FanService {
       agg.set(id, cur)
     }
 
-    return [...agg.entries()]
-      .map(([id, v]) => ({
-        id,
-        platformId: v.platformId,
-        payerRef: v.payerRef,
-        totalGross: round(v.gross),
-        totalNet: round(v.net),
-        txCount: v.count,
-        lastSeen: v.lastSeen,
-        tier: tierFor(v.net),
-        note: this.db.getSetting(`note:${id}`) ?? '',
-      }))
+    const base = [...agg.entries()].map(([id, v]) => ({
+      id,
+      platformId: v.platformId,
+      payerRef: v.payerRef,
+      totalGross: round(v.gross),
+      totalNet: round(v.net),
+      txCount: v.count,
+      lastSeen: v.lastSeen,
+      tier: tierFor(v.net),
+      note: this.db.getSetting(`note:${id}`) ?? '',
+    }))
+    const latestMs = base.reduce((m, f) => Math.max(m, Date.parse(f.lastSeen) || 0), 0)
+    return base
+      .map((f) => {
+        const days = latestMs ? Math.max(0, Math.round((latestMs - (Date.parse(f.lastSeen) || latestMs)) / 86_400_000)) : 0
+        return { ...f, daysSinceSeen: days, lapsed: days > LAPSED_DAYS }
+      })
       .sort((a, b) => b.totalNet - a.totalNet)
   }
 

@@ -27,6 +27,15 @@ export default function Fans() {
         Your spenders across every platform, ranked by net. Private notes stay on this device.
       </p>
 
+      {fans.filter((f) => f.lapsed).length > 0 && (
+        <div className="pb-card" style={{ padding: '8px 12px', marginBottom: 12, borderColor: 'var(--pb-gold)' }}>
+          <span style={{ fontSize: 12, color: 'var(--pb-text-muted)' }}>
+            <b style={{ color: 'var(--pb-primary-deep)' }}>{fans.filter((f) => f.lapsed).length}</b> fans haven&apos;t bought
+            in a while — consider a win-back DM.
+          </span>
+        </div>
+      )}
+
       {fans.length === 0 ? (
         <div className="pb-card" style={{ padding: 24 }}>
           <span style={{ color: 'var(--pb-text-muted)', fontSize: 14 }}>
@@ -83,6 +92,11 @@ function FanRow({ fan }: { fan: Fan }) {
       <span style={{ fontSize: 11, background: t.bg, color: t.fg, padding: '3px 9px', borderRadius: 20, flexShrink: 0 }}>
         {t.label}
       </span>
+      {fan.lapsed && (
+        <span style={{ fontSize: 11, background: '#f6ecd6', color: '#8a6a1a', padding: '3px 9px', borderRadius: 20, flexShrink: 0 }}>
+          lapsed {fan.daysSinceSeen}d
+        </span>
+      )}
       <input
         className="pb-input"
         placeholder="Add a note…"

@@ -72,6 +72,7 @@ export interface PbApiContract {
     draft(req: DraftRequest): Promise<DraftResult>
     config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[] }>
     setBoundaries(boundaries: string[]): Promise<void>
+    setKey(provider: string, key: string): Promise<void>
   }
   schedule: {
     list(): Promise<ScheduledItem[]>
@@ -115,6 +116,7 @@ export const IPC = {
   assistantDraft: 'assistant:draft',
   assistantConfig: 'assistant:config',
   assistantSetBoundaries: 'assistant:set-boundaries',
+  assistantSetKey: 'assistant:set-key',
   scheduleList: 'schedule:list',
   scheduleCreate: 'schedule:create',
   scheduleSetStatus: 'schedule:set-status',

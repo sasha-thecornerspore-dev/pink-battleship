@@ -83,6 +83,8 @@ export interface Fan {
   lastSeen: string
   tier: FanTier
   note: string
+  daysSinceSeen: number
+  lapsed: boolean
 }
 
 export interface EarningsPoint {

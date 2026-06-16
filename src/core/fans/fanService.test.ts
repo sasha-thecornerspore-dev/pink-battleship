@@ -46,6 +46,17 @@ describe('FanService', () => {
     expect(fans[2]).toMatchObject({ payerRef: 'reg_r', tier: 'regular' })
   })
 
+  it('flags lapsed fans relative to the latest activity', () => {
+    const db = new InMemoryDatabase()
+    db.upsertRateRule({ id: 'cb', platformId: 'chaturbate', kind: 'platform_cut', rate: 0, fixedFee: 0, effectiveFrom: '2020-01-01', effectiveTo: null, isEstimate: true })
+    const tx = (id: string, payer: string, day: string): Transaction => ({ id, connectorId: 'c', platformId: 'chaturbate', occurredAt: day, grossAmount: 50, currency: 'USD', kind: 'tip', externalId: null, payerRef: payer })
+    db.insertTransactions([tx('a', 'recent', '2026-05-30'), tx('b', 'old', '2026-05-01')])
+    const fans = new FanService(db).list()
+    expect(fans.find((f) => f.payerRef === 'recent')?.lapsed).toBe(false)
+    expect(fans.find((f) => f.payerRef === 'old')?.lapsed).toBe(true)
+    expect(fans.find((f) => f.payerRef === 'old')?.daysSinceSeen).toBe(29)
+  })
+
   it('stores and returns per-fan notes', () => {
     const db = seed()
     const svc = new FanService(db)

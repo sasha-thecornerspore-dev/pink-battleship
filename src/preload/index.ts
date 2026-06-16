@@ -49,6 +49,7 @@ const api: PbApiContract = {
     draft: (req) => ipcRenderer.invoke(IPC.assistantDraft, req),
     config: () => ipcRenderer.invoke(IPC.assistantConfig),
     setBoundaries: (boundaries) => ipcRenderer.invoke(IPC.assistantSetBoundaries, boundaries),
+    setKey: (provider, key) => ipcRenderer.invoke(IPC.assistantSetKey, provider, key),
   },
   schedule: {
     list: () => ipcRenderer.invoke(IPC.scheduleList),

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRates, usePrivacy, pb, qk } from '../lib/api'
 import { useUi } from '../store/ui'
 import { THEMES } from '../theme/themes'
@@ -90,6 +90,8 @@ export default function Settings() {
         ))}
       </Section>
 
+      <AiKeys />
+
       <Section
         title="What leaves your machine"
         subtitle="Every declared outbound destination and the live egress log. In this build, only an official Chaturbate connector would ever reach the network."
@@ -137,6 +139,74 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
       <div style={{ fontSize: 14, marginBottom: subtitle ? 3 : 10 }}>{title}</div>
       {subtitle && <p style={{ fontSize: 12, color: 'var(--pb-text-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>{subtitle}</p>}
       {children}
+    </div>
+  )
+}
+
+function AiKeys() {
+  const qc = useQueryClient()
+  const cfg = useQuery({ queryKey: qk.assistant, queryFn: () => pb.assistant.config() })
+  const available = new Set(cfg.data?.available ?? [])
+  const save = async (provider: string, key: string) => {
+    await pb.assistant.setKey(provider, key)
+    await qc.invalidateQueries({ queryKey: qk.assistant })
+  }
+  return (
+    <Section
+      title="AI providers (bring your own key)"
+      subtitle="Keys are stored in your OS keychain and unlock the matching backends in Assistant. The local model and a free SFW tier work without any key."
+    >
+      <KeyRow provider="claude" label="Claude" connected={available.has('claude')} onSave={save} />
+      <KeyRow provider="venice" label="Venice" connected={available.has('venice')} onSave={save} />
+    </Section>
+  )
+}
+
+function KeyRow({
+  provider,
+  label,
+  connected,
+  onSave,
+}: {
+  provider: string
+  label: string
+  connected: boolean
+  onSave: (provider: string, key: string) => void
+}) {
+  const [value, setValue] = useState('')
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+      <span style={{ fontSize: 13, width: 80 }}>{label}</span>
+      {connected ? (
+        <>
+          <span style={{ fontSize: 12, color: 'var(--pb-sage-deep)', flex: 1 }}>connected</span>
+          <button className="pb-btn" style={{ fontSize: 11 }} onClick={() => onSave(provider, '')}>
+            Remove
+          </button>
+        </>
+      ) : (
+        <>
+          <input
+            className="pb-input"
+            type="password"
+            placeholder={`${label} API key`}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <button
+            className="pb-btn pb-btn-primary"
+            style={{ fontSize: 11 }}
+            disabled={!value.trim()}
+            onClick={() => {
+              onSave(provider, value.trim())
+              setValue('')
+            }}
+          >
+            Save
+          </button>
+        </>
+      )}
     </div>
   )
 }

@@ -77,7 +77,7 @@ await page.getByText(/Plan posts/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'calendar.png') })
 
 await page.getByRole('button', { name: 'Compliance' }).click()
-await page.getByText(/not legal advice/i).waitFor({ timeout: 5000 })
+await page.getByText('2257 records vault').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'compliance.png') })
 
 await page.getByRole('button', { name: 'Settings' }).click()
