@@ -81,6 +81,11 @@ await page.getByText('2257 records vault').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'compliance.png') })
 
 await page.getByRole('button', { name: 'Settings' }).click()
+await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
+await page.getByText('AI providers — free vs paid').scrollIntoViewIfNeeded()
+await page.screenshot({ path: join(outDir, 'settings-ai.png') })
+
+await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByRole('button', { name: 'dark' }).click()
 await page.getByRole('button', { name: 'Dashboard' }).click()
 await page.getByText(/net earnings this period/i).waitFor({ timeout: 5000 })

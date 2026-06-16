@@ -226,10 +226,8 @@ export class AppServices {
   // --- AI assistant ---
 
   private assistantAvailable(): string[] {
-    const available = ['local', 'groq']
-    if (this.secrets.get('ai.claudeKey')) available.push('claude')
-    if (this.secrets.get('ai.veniceKey')) available.push('venice')
-    return available
+    const keyed = ALL_PROVIDERS.filter((p) => p.needsKey && this.secrets.get(`ai.${p.id}Key`)).map((p) => p.id)
+    return ['local', ...keyed]
   }
   private assistantBoundaries(): string[] {
     const raw = this.requireDb().getSetting('assistant:boundaries')
@@ -238,8 +236,13 @@ export class AppServices {
   draftAssistant(req: DraftRequest): DraftResult {
     return new AssistantService().draft(req, { boundaries: this.assistantBoundaries() }, this.assistantAvailable())
   }
-  assistantConfig(): { boundaries: string[]; providers: AssistantProvider[]; available: string[] } {
-    return { boundaries: this.assistantBoundaries(), providers: ALL_PROVIDERS, available: this.assistantAvailable() }
+  assistantConfig(): { boundaries: string[]; providers: AssistantProvider[]; available: string[]; localModel: string } {
+    return {
+      boundaries: this.assistantBoundaries(),
+      providers: ALL_PROVIDERS,
+      available: this.assistantAvailable(),
+      localModel: this.requireDb().getSetting('ai.localModel') ?? '',
+    }
   }
   setAssistantBoundaries(boundaries: string[]): void {
     this.requireDb().setSetting('assistant:boundaries', JSON.stringify(boundaries))
@@ -247,6 +250,21 @@ export class AppServices {
   setAssistantKey(provider: string, key: string): void {
     if (key) this.secrets.set(`ai.${provider}Key`, key)
     else this.secrets.delete(`ai.${provider}Key`)
+  }
+  async ollamaStatus(): Promise<{ running: boolean; models: string[] }> {
+    // Ollama is on-device — a direct localhost call, never routed through the
+    // egress gateway (nothing leaves the machine).
+    try {
+      const res = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(1500) })
+      if (!res.ok) return { running: false, models: [] }
+      const data = (await res.json()) as { models?: { name: string }[] }
+      return { running: true, models: (data.models ?? []).map((m) => m.name) }
+    } catch {
+      return { running: false, models: [] }
+    }
+  }
+  setLocalModel(model: string): void {
+    this.requireDb().setSetting('ai.localModel', model)
   }
 
   // --- scheduler / calendar ---

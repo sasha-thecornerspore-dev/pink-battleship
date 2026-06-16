@@ -1,10 +1,19 @@
 import type { AssistantProvider } from '@shared/models'
 
 export const ALL_PROVIDERS: AssistantProvider[] = [
-  { id: 'local', label: 'Local model (uncensored)', explicitOk: true, local: true, trains: false },
-  { id: 'venice', label: 'Venice — BYO key', explicitOk: true, local: false, trains: false },
-  { id: 'claude', label: 'Claude — BYO key (SFW)', explicitOk: false, local: false, trains: false },
-  { id: 'groq', label: 'Groq — free tier (SFW)', explicitOk: false, local: false, trains: false },
+  // Free local — the dependable baseline (runs on the creator's machine)
+  { id: 'local', label: 'Local model (Ollama)', tier: 'free-local', explicitOk: true, local: true, trains: false, needsKey: false, blurb: 'Runs on your machine. Free, private, offline, explicit-capable.' },
+  // Free hosted — SFW only, no GPU, free key
+  { id: 'gemini', label: 'Google Gemini (AI Studio)', tier: 'free-hosted', explicitOk: false, local: false, trains: false, needsKey: true, blurb: 'Generous free tier, 1M context. SFW only.' },
+  { id: 'groq', label: 'Groq', tier: 'free-hosted', explicitOk: false, local: false, trains: false, needsKey: true, blurb: 'Free tier, fastest latency. SFW only.' },
+  { id: 'cerebras', label: 'Cerebras', tier: 'free-hosted', explicitOk: false, local: false, trains: false, needsKey: true, blurb: 'Free tier, highest throughput. SFW only.' },
+  { id: 'openrouter_free', label: 'OpenRouter (free models)', tier: 'free-hosted', explicitOk: false, local: false, trains: false, needsKey: true, blurb: '30+ free models, one key. SFW only.' },
+  // Paid — bring your own key
+  { id: 'claude', label: 'Claude (Anthropic)', tier: 'paid', explicitOk: false, local: false, trains: false, needsKey: true, blurb: 'Premium SFW quality. Refuses explicit.' },
+  { id: 'openai', label: 'OpenAI GPT', tier: 'paid', explicitOk: false, local: false, trains: false, needsKey: true, blurb: 'Premium SFW quality. Refuses explicit.' },
+  { id: 'venice', label: 'Venice', tier: 'paid', explicitOk: true, local: false, trains: false, needsKey: true, blurb: 'Private, no-logs, uncensored. Explicit in the cloud.' },
+  { id: 'openrouter', label: 'OpenRouter (uncensored)', tier: 'paid', explicitOk: true, local: false, trains: false, needsKey: true, blurb: 'Pay-per-token uncensored models.' },
+  { id: 'atlas', label: 'Atlas Cloud', tier: 'paid', explicitOk: true, local: false, trains: false, needsKey: true, blurb: '300+ models, never trained on / never reviewed.' },
 ]
 
 export interface RouteDecision {

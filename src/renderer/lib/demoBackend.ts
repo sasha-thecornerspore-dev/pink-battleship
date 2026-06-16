@@ -101,10 +101,8 @@ function privacyReport(): PrivacyReport {
 }
 
 function demoAiAvailable(): string[] {
-  const a = ['local', 'groq']
-  if (db.getSetting('ai.claudeKey')) a.push('claude')
-  if (db.getSetting('ai.veniceKey')) a.push('venice')
-  return a
+  const keyed = ALL_PROVIDERS.filter((p) => p.needsKey && db.getSetting(`ai.${p.id}Key`)).map((p) => p.id)
+  return ['local', ...keyed]
 }
 
 export function createDemoBackend(): PbApiContract {
@@ -205,7 +203,7 @@ export function createDemoBackend(): PbApiContract {
       config: () => {
         const r = db.getSetting('assistant:boundaries')
         const boundaries = r ? (JSON.parse(r) as string[]) : []
-        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: demoAiAvailable() })
+        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: demoAiAvailable(), localModel: db.getSetting('ai.localModel') ?? '' })
       },
       setBoundaries: (boundaries) => {
         db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
@@ -213,6 +211,11 @@ export function createDemoBackend(): PbApiContract {
       },
       setKey: (provider, key) => {
         db.setSetting(`ai.${provider}Key`, key)
+        return Promise.resolve()
+      },
+      ollama: () => Promise.resolve({ running: true, models: ['dolphin-llama3:8b', 'mistral-nemo:12b', 'nous-hermes3:8b'] }),
+      setLocalModel: (model) => {
+        db.setSetting('ai.localModel', model)
         return Promise.resolve()
       },
     },

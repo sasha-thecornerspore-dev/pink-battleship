@@ -139,12 +139,17 @@ export interface Asset {
 
 export type AssistantTask = 'caption' | 'fan_reply' | 'content_idea'
 
+export type ProviderTier = 'free-local' | 'free-hosted' | 'paid'
+
 export interface AssistantProvider {
   id: string
   label: string
+  tier: ProviderTier
   explicitOk: boolean
   local: boolean
   trains: boolean
+  needsKey: boolean
+  blurb: string
 }
 
 export interface AssistantConfig {

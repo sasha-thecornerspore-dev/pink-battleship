@@ -41,6 +41,8 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.assistantConfig, () => services.assistantConfig())
   ipcMain.handle(IPC.assistantSetBoundaries, (_e, boundaries: string[]) => services.setAssistantBoundaries(boundaries))
   ipcMain.handle(IPC.assistantSetKey, (_e, provider: string, key: string) => services.setAssistantKey(provider, key))
+  ipcMain.handle(IPC.assistantOllama, () => services.ollamaStatus())
+  ipcMain.handle(IPC.assistantSetLocalModel, (_e, model: string) => services.setLocalModel(model))
 
   ipcMain.handle(IPC.scheduleList, () => services.listSchedule())
   ipcMain.handle(IPC.scheduleCreate, (_e, input) => services.createSchedule(input))

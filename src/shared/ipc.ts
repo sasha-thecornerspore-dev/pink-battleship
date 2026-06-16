@@ -70,9 +70,11 @@ export interface PbApiContract {
   }
   assistant: {
     draft(req: DraftRequest): Promise<DraftResult>
-    config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[] }>
+    config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[]; localModel: string }>
     setBoundaries(boundaries: string[]): Promise<void>
     setKey(provider: string, key: string): Promise<void>
+    ollama(): Promise<{ running: boolean; models: string[] }>
+    setLocalModel(model: string): Promise<void>
   }
   schedule: {
     list(): Promise<ScheduledItem[]>
@@ -117,6 +119,8 @@ export const IPC = {
   assistantConfig: 'assistant:config',
   assistantSetBoundaries: 'assistant:set-boundaries',
   assistantSetKey: 'assistant:set-key',
+  assistantOllama: 'assistant:ollama',
+  assistantSetLocalModel: 'assistant:set-local-model',
   scheduleList: 'schedule:list',
   scheduleCreate: 'schedule:create',
   scheduleSetStatus: 'schedule:set-status',

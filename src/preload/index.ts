@@ -50,6 +50,8 @@ const api: PbApiContract = {
     config: () => ipcRenderer.invoke(IPC.assistantConfig),
     setBoundaries: (boundaries) => ipcRenderer.invoke(IPC.assistantSetBoundaries, boundaries),
     setKey: (provider, key) => ipcRenderer.invoke(IPC.assistantSetKey, provider, key),
+    ollama: () => ipcRenderer.invoke(IPC.assistantOllama),
+    setLocalModel: (model) => ipcRenderer.invoke(IPC.assistantSetLocalModel, model),
   },
   schedule: {
     list: () => ipcRenderer.invoke(IPC.scheduleList),
