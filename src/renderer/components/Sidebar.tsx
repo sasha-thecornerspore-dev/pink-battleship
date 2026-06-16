@@ -18,6 +18,7 @@ const NAV: { id: Route; label: string }[] = [
 export default function Sidebar() {
   const route = useUi((s) => s.route)
   const setRoute = useUi((s) => s.setRoute)
+  const setTourOpen = useUi((s) => s.setTourOpen)
   const qc = useQueryClient()
 
   const lock = async () => {
@@ -80,6 +81,9 @@ export default function Sidebar() {
       })}
 
       <div style={{ flex: 1 }} />
+      <button className="pb-btn" onClick={() => setTourOpen(true)} style={{ marginBottom: 8, fontSize: 12 }}>
+        Take a tour
+      </button>
       <button
         className="pb-btn"
         onClick={lock}

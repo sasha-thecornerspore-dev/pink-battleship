@@ -54,6 +54,11 @@ await page.getByRole('button', { name: /create encrypted vault/i }).click()
 await page.getByText(/net earnings this period/i).waitFor({ timeout: 10000 })
 await page.screenshot({ path: join(outDir, 'dashboard.png') })
 
+await page.getByRole('button', { name: 'Take a tour' }).click()
+await page.getByText('1 / 10').waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'tour.png') })
+await page.getByRole('button', { name: 'Skip' }).click()
+
 await page.getByRole('button', { name: 'Fans' }).click()
 await page.getByText(/ranked by net/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'fans.png') })

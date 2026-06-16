@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useUi } from './store/ui'
 import { pb } from './lib/api'
 import Sidebar from './components/Sidebar'
+import Tour from './components/Tour'
 import Dashboard from './screens/Dashboard'
 import Stats from './screens/Stats'
 import Fans from './screens/Fans'
@@ -15,6 +16,7 @@ import Compliance from './screens/Compliance'
 
 export default function Shell() {
   const route = useUi((s) => s.route)
+  const tourOpen = useUi((s) => s.tourOpen)
   const setTheme = useUi((s) => s.setTheme)
   const setMode = useUi((s) => s.setMode)
 
@@ -43,6 +45,7 @@ export default function Shell() {
         {route === 'compliance' && <Compliance />}
         {route === 'settings' && <Settings />}
       </main>
+      {tourOpen && <Tour />}
     </div>
   )
 }
