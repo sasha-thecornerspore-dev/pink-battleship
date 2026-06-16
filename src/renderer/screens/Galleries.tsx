@@ -12,6 +12,7 @@ const PLATFORM_LABEL: Record<string, string> = {
   x: 'X',
 }
 const TILE_COLORS = ['#e6cfd9', '#dcd0ec', '#e7dcc6', '#d6e2da', '#e7d3cb', '#d6dde8']
+const PLATFORMS = ['chaturbate', 'onlyfans', 'fansly', 'manyvids', 'reddit', 'x']
 
 function hash(s: string): number {
   let h = 0
@@ -108,8 +109,27 @@ function MediaGlyph({ kind }: { kind: Asset['mediaKind'] }) {
 }
 
 function AssetTile({ asset, safe }: { asset: Asset; safe: boolean }) {
+  const qc = useQueryClient()
   const hidden = safe && asset.nsfw
   const color = TILE_COLORS[hash(asset.filename) % TILE_COLORS.length]
+  const refresh = () => qc.invalidateQueries({ queryKey: qk.galleries })
+  const togglePosted = async (p: string) => {
+    await pb.galleries.togglePosted(asset.id, p)
+    await refresh()
+  }
+  const addTag = async () => {
+    const t = window.prompt('Add a tag')?.trim()
+    if (!t || asset.tags.includes(t)) return
+    await pb.galleries.setTags(asset.id, [...asset.tags, t])
+    await refresh()
+  }
+  const removeTag = async (t: string) => {
+    await pb.galleries.setTags(
+      asset.id,
+      asset.tags.filter((x) => x !== t),
+    )
+    await refresh()
+  }
   return (
     <div className="pb-card" style={{ padding: 0, overflow: 'hidden' }}>
       <div
@@ -137,23 +157,44 @@ function AssetTile({ asset, safe }: { asset: Asset; safe: boolean }) {
       </div>
       <div style={{ padding: '8px 10px' }}>
         <div style={{ fontSize: 12, marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.filename}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 5 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6, alignItems: 'center' }}>
           {asset.tags.map((t) => (
-            <span key={t} style={{ fontSize: 10, background: 'var(--pb-track)', padding: '1px 6px', borderRadius: 10, color: 'var(--pb-text-muted)' }}>
-              {t}
+            <span
+              key={t}
+              onClick={() => removeTag(t)}
+              title="Remove tag"
+              style={{ cursor: 'pointer', fontSize: 10, background: 'var(--pb-track)', padding: '1px 6px', borderRadius: 10, color: 'var(--pb-text-muted)' }}
+            >
+              {t} ×
             </span>
           ))}
+          <button onClick={addTag} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 10, color: 'var(--pb-primary-deep)' }}>
+            + tag
+          </button>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-          {asset.postedTo.length === 0 ? (
-            <span style={{ fontSize: 10, color: 'var(--pb-text-muted)' }}>not posted</span>
-          ) : (
-            asset.postedTo.map((p) => (
-              <span key={p} style={{ fontSize: 10, background: 'var(--pb-sage-bg)', color: 'var(--pb-sage-deep)', padding: '1px 6px', borderRadius: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+          <span style={{ fontSize: 9, color: 'var(--pb-text-muted)', marginRight: 2 }}>Posted:</span>
+          {PLATFORMS.map((p) => {
+            const on = asset.postedTo.includes(p)
+            return (
+              <button
+                key={p}
+                onClick={() => togglePosted(p)}
+                title={`Toggle posted on ${PLATFORM_LABEL[p] ?? p}`}
+                style={{
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 9,
+                  padding: '2px 6px',
+                  borderRadius: 8,
+                  background: on ? 'var(--pb-sage-bg)' : 'var(--pb-track)',
+                  color: on ? 'var(--pb-sage-deep)' : 'var(--pb-text-muted)',
+                }}
+              >
                 {PLATFORM_LABEL[p] ?? p}
-              </span>
-            ))
-          )}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
