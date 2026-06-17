@@ -96,6 +96,10 @@ await page.getByRole('button', { name: /use sample/i }).click()
 await page.getByText(/columns detected/i).waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'import.png') })
 
+await page.getByRole('button', { name: 'Connectors' }).click()
+await page.getByText('Account safety').waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'connectors.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
 await page.getByText('AI providers — free vs paid').scrollIntoViewIfNeeded()

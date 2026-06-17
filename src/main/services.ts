@@ -165,6 +165,11 @@ export class AppServices {
     }
   }
 
+  disconnectConnector(connectorId: string): void {
+    this.requireDb().removeConnector(connectorId)
+    if (connectorId === 'chaturbate') this.secrets.delete('chaturbate.eventsUrl')
+  }
+
   importCsv(req: ImportCsvRequest): ImportCsvResult {
     const db = this.requireDb()
     const connectorId = `manual:${req.platformId}`

@@ -147,6 +147,10 @@ export function createDemoBackend(): PbApiContract {
         }
         return { inserted: 0 }
       },
+      disconnect: (id) => {
+        db.removeConnector(id)
+        return Promise.resolve()
+      },
     },
     imports: {
       csv: (req) => {

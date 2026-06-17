@@ -13,6 +13,7 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.connectorsConnectChaturbateMock, () => services.connectChaturbateMock())
   ipcMain.handle(IPC.connectorsConnectChaturbate, (_e, eventsUrl: string) => services.connectChaturbate(eventsUrl))
   ipcMain.handle(IPC.connectorsSync, (_e, connectorId: string) => services.syncConnector(connectorId))
+  ipcMain.handle(IPC.connectorsDisconnect, (_e, connectorId: string) => services.disconnectConnector(connectorId))
 
   ipcMain.handle(IPC.importCsv, (_e, req: ImportCsvRequest) => services.importCsv(req))
 

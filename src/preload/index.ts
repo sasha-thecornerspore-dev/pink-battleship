@@ -13,6 +13,7 @@ const api: PbApiContract = {
     connectChaturbateMock: () => ipcRenderer.invoke(IPC.connectorsConnectChaturbateMock),
     connectChaturbate: (eventsUrl) => ipcRenderer.invoke(IPC.connectorsConnectChaturbate, eventsUrl),
     sync: (connectorId) => ipcRenderer.invoke(IPC.connectorsSync, connectorId),
+    disconnect: (connectorId) => ipcRenderer.invoke(IPC.connectorsDisconnect, connectorId),
   },
   imports: {
     csv: (req) => ipcRenderer.invoke(IPC.importCsv, req),

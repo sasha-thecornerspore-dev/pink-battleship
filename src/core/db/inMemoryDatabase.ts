@@ -43,6 +43,10 @@ export class InMemoryDatabase implements Database {
     this.connectors.set(c.id, c)
   }
 
+  removeConnector(id: string): void {
+    this.connectors.delete(id)
+  }
+
   getSetting(key: string): string | null {
     return this.settings.get(key) ?? null
   }

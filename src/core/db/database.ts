@@ -18,6 +18,7 @@ export interface Database {
   upsertRateRule(rule: RateRule): void
   listConnectors(): ConnectorInfo[]
   upsertConnector(c: ConnectorInfo): void
+  removeConnector(id: string): void
   getSetting(key: string): string | null
   setSetting(key: string, value: string): void
   appendEgress(entry: EgressEntry): void

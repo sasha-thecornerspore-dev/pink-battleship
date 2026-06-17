@@ -67,6 +67,16 @@ export default function Connectors() {
     }
   }
 
+  const disconnect = async (id: string) => {
+    setBusy(id)
+    try {
+      await pb.connectors.disconnect(id)
+      await invalidate()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   const list = q.data ?? []
   const hasChaturbate = list.some((c) => c.platformId === 'chaturbate')
 
@@ -131,19 +141,36 @@ export default function Connectors() {
               </span>
             </div>
           </div>
-          {c.driver === 'official' ? (
-            <button className="pb-btn" onClick={() => sync(c.id)} disabled={busy === c.id}>
-              {busy === c.id ? 'Syncing…' : 'Sync'}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {c.driver === 'official' ? (
+              <button className="pb-btn" onClick={() => sync(c.id)} disabled={busy === c.id}>
+                {busy === c.id ? 'Syncing…' : 'Sync'}
+              </button>
+            ) : (
+              <button className="pb-btn" onClick={() => setRoute('import')}>
+                Import CSV
+              </button>
+            )}
+            <button
+              className="pb-btn"
+              onClick={() => disconnect(c.id)}
+              disabled={busy === c.id}
+              style={{ borderColor: 'var(--pb-danger)', color: 'var(--pb-danger)' }}
+            >
+              Disconnect
             </button>
-          ) : (
-            <button className="pb-btn" onClick={() => setRoute('import')}>
-              Import CSV
-            </button>
-          )}
+          </div>
         </div>
       ))}
 
-      {list.length === 0 && hasChaturbate === false && null}
+      <div className="pb-card" style={{ padding: '14px 16px', marginTop: 6, borderColor: 'var(--pb-sage)' }}>
+        <div style={{ fontSize: 14, marginBottom: 6 }}>Account safety</div>
+        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--pb-text-muted)', lineHeight: 1.7 }}>
+          <li>OnlyFans, Fansly &amp; ManyVids are <b>import-only</b> here — no automation, so nothing on your account looks botted.</li>
+          <li>Chaturbate uses the <b>official</b> Events API; your token lives in the OS keychain and only <code>eventsapi.chaturbate.com</code> is ever contacted.</li>
+          <li>Never paste a platform <b>password</b> — only the Chaturbate Events URL. Disconnecting wipes the stored token.</li>
+        </ul>
+      </div>
     </div>
   )
 }

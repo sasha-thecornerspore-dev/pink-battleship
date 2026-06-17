@@ -175,6 +175,10 @@ export class SqlcipherDatabase implements DbPort {
       .run(c.id, c.platformId, c.driver, c.riskLabel, c.status, c.lastSyncAt)
   }
 
+  removeConnector(id: string): void {
+    this.db.prepare('DELETE FROM connectors WHERE id = ?').run(id)
+  }
+
   getSetting(key: string): string | null {
     const row = this.db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined
     return row ? row.value : null

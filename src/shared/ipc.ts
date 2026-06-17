@@ -36,6 +36,7 @@ export interface PbApiContract {
     connectChaturbateMock(): Promise<ConnectorInfo>
     connectChaturbate(eventsUrl: string): Promise<ConnectorInfo>
     sync(connectorId: string): Promise<{ inserted: number }>
+    disconnect(connectorId: string): Promise<void>
   }
   imports: {
     csv(req: ImportCsvRequest): Promise<ImportCsvResult>
@@ -100,6 +101,7 @@ export const IPC = {
   connectorsConnectChaturbateMock: 'connectors:connect-chaturbate-mock',
   connectorsConnectChaturbate: 'connectors:connect-chaturbate',
   connectorsSync: 'connectors:sync',
+  connectorsDisconnect: 'connectors:disconnect',
   importCsv: 'import:csv',
   pnlSummary: 'pnl:summary',
   ratesList: 'rates:list',
