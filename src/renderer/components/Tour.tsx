@@ -8,6 +8,8 @@ const STEPS: { route: Route; title: string; body: string }[] = [
   { route: 'galleries', title: 'Galleries', body: 'A master library plus sellable sets. Tag assets, track where each is posted, and flip on Safe mode to hide NSFW tiles.' },
   { route: 'assistant', title: 'Assistant', body: 'Draft captions and fan replies. A free local model is the baseline; the safety router keeps explicit work off SFW providers and fan PII on-device.' },
   { route: 'calendar', title: 'Calendar', body: 'Plan posts, mass-DMs, go-lives and promos across platforms, with status tracking for each.' },
+  { route: 'live', title: 'Live (OBS)', body: 'See your OBS stream at a glance — live status, duration, scenes — read over its local WebSocket, so it never leaves your machine.' },
+  { route: 'website', title: 'Website', body: 'Build a link-in-bio page with an 18+ age gate, generated entirely on-device. Preview it live and export the HTML to host anywhere.' },
   { route: 'connectors', title: 'Connectors', body: 'Official APIs where they exist (Chaturbate), manual CSV where they do not — no automation, no ban risk.' },
   { route: 'import', title: 'Import', body: 'Drop a CSV, map the columns once, and it flows straight into your P&L. Nothing is uploaded anywhere.' },
   { route: 'compliance', title: 'Compliance', body: 'A 2257 records vault, custodian statement, tax set-aside, a DMCA generator, and a legal assistant — all on-device.' },
