@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCsvTransactions } from './manualCsv'
+import { parseCsvTransactions, guessCsvMapping, parseCsvHeaders } from './manualCsv'
 
 const csv = `date,amount,type,payer
 2026-05-01,12.50,tip,fan_a
@@ -7,6 +7,19 @@ const csv = `date,amount,type,payer
 bad,row
 2026-05-03,"1,200",sub,"whale, the"
 `
+
+describe('guessCsvMapping', () => {
+  it('maps common header names to roles', () => {
+    const m = guessCsvMapping(parseCsvHeaders('Date,Gross Amount,Transaction Type,Fan Username\n2026-05-01,10,tip,x'))
+    expect(m).toMatchObject({ date: 'Date', amount: 'Gross Amount', kind: 'Transaction Type', payer: 'Fan Username' })
+  })
+
+  it('leaves required fields empty when nothing matches', () => {
+    const m = guessCsvMapping(['colA', 'colB'])
+    expect(m.date).toBe('')
+    expect(m.amount).toBe('')
+  })
+})
 
 describe('parseCsvTransactions', () => {
   it('maps valid rows and reports bad rows', () => {

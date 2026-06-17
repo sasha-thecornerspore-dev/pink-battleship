@@ -91,6 +91,11 @@ await page.getByText(/Routed via/i).waitFor({ timeout: 5000 })
 await page.getByText('Legal assistant').scrollIntoViewIfNeeded()
 await page.screenshot({ path: join(outDir, 'legal.png') })
 
+await page.getByRole('button', { name: 'Import' }).click()
+await page.getByRole('button', { name: /use sample/i }).click()
+await page.getByText(/columns detected/i).waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'import.png') })
+
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
 await page.getByText('AI providers — free vs paid').scrollIntoViewIfNeeded()

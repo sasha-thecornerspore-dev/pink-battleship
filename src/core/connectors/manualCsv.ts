@@ -55,6 +55,22 @@ function parseLine(line: string): string[] {
   return out.map((s) => s.trim())
 }
 
+export function parseCsvHeaders(csv: string): string[] {
+  const first = csv.split(/\r?\n/).find((l) => l.trim().length > 0)
+  return first ? parseLine(first) : []
+}
+
+/** Best-effort guess of which header maps to date/amount/kind/payer/currency. */
+export function guessCsvMapping(headers: string[]): CsvColumnMap {
+  const find = (patterns: RegExp[]): string => headers.find((h) => patterns.some((p) => p.test(h))) ?? ''
+  const date = find([/date/i, /timestamp/i, /\btime\b/i, /when/i])
+  const amount = find([/amount/i, /gross/i, /\btotal\b/i, /earning/i, /revenue/i, /price/i, /tokens?/i, /value/i, /\bnet\b/i])
+  const kind = find([/type/i, /\bkind\b/i, /category/i, /transaction/i])
+  const payer = find([/payer/i, /\bfan\b/i, /user/i, /buyer/i, /customer/i, /tipper/i, /\bfrom\b/i])
+  const currency = find([/currency/i, /\bcurr\b/i])
+  return { date, amount, kind: kind || undefined, payer: payer || undefined, currency: currency || undefined }
+}
+
 export function parseCsvTransactions(csv: string, opts: CsvImportOptions): CsvImportResult {
   const lines = csv.split(/\r?\n/).filter((l) => l.trim().length > 0)
   const result: CsvImportResult = { transactions: [], skipped: [] }

@@ -2,6 +2,7 @@ import { useState, type ChangeEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { pb, qk } from '../lib/api'
 import type { ImportCsvResult } from '@shared/ipc'
+import { guessCsvMapping, parseCsvHeaders, type CsvColumnMap } from '@core/connectors/manualCsv'
 
 const PLATFORMS = [
   { id: 'onlyfans', label: 'OnlyFans' },
@@ -15,22 +16,38 @@ const SAMPLE = `date,amount,type,payer
 2026-05-02,8,tip,fan_lux
 2026-05-04,40,ppv,fan_amber`
 
+const FIELDS: { key: keyof CsvColumnMap; label: string }[] = [
+  { key: 'date', label: 'Date column' },
+  { key: 'amount', label: 'Amount column' },
+  { key: 'kind', label: 'Type column' },
+  { key: 'payer', label: 'Payer column' },
+]
+
 export default function Import() {
   const qc = useQueryClient()
   const [platformId, setPlatformId] = useState('onlyfans')
   const [csv, setCsv] = useState('')
-  const [map, setMap] = useState({ date: 'date', amount: 'amount', kind: 'type', payer: 'payer' })
+  const [map, setMap] = useState<CsvColumnMap>({ date: 'date', amount: 'amount', kind: 'type', payer: 'payer' })
   const [result, setResult] = useState<ImportCsvResult | null>(null)
   const [busy, setBusy] = useState(false)
 
+  const headers = parseCsvHeaders(csv)
+
+  const applyCsv = (text: string) => {
+    setCsv(text)
+    const h = parseCsvHeaders(text)
+    if (h.length) setMap(guessCsvMapping(h))
+  }
   const onFile = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
     const r = new FileReader()
-    r.onload = () => setCsv(String(r.result))
+    r.onload = () => applyCsv(String(r.result))
     r.readAsText(f)
   }
-
+  const autoDetect = () => {
+    if (headers.length) setMap(guessCsvMapping(headers))
+  }
   const doImport = async () => {
     setBusy(true)
     try {
@@ -43,10 +60,21 @@ export default function Import() {
     }
   }
 
-  const field = (key: keyof typeof map, label: string) => (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--pb-text-muted)' }}>
+  const field = ({ key, label }: { key: keyof CsvColumnMap; label: string }) => (
+    <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--pb-text-muted)' }}>
       {label}
-      <input className="pb-input" value={map[key]} onChange={(e) => setMap({ ...map, [key]: e.target.value })} />
+      {headers.length ? (
+        <select className="pb-input" value={map[key] ?? ''} onChange={(e) => setMap({ ...map, [key]: e.target.value })}>
+          <option value="">—</option>
+          {headers.map((h) => (
+            <option key={h} value={h}>
+              {h}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input className="pb-input" value={map[key] ?? ''} onChange={(e) => setMap({ ...map, [key]: e.target.value })} />
+      )}
     </label>
   )
 
@@ -54,7 +82,7 @@ export default function Import() {
     <div style={{ maxWidth: 640 }}>
       <div style={{ fontSize: 18, marginBottom: 4 }}>Import</div>
       <p style={{ color: 'var(--pb-text-muted)', fontSize: 13, marginBottom: 18, lineHeight: 1.5 }}>
-        Paste or upload a CSV export. Tell us which columns hold the date, amount, type and payer, and we map it into your
+        Paste or upload a CSV export. Columns are auto-detected from the headers — tweak if needed — and it maps into your
         unified P&amp;L. Nothing is uploaded anywhere.
       </p>
 
@@ -68,7 +96,7 @@ export default function Import() {
             ))}
           </select>
           <input type="file" accept=".csv,text/csv" onChange={onFile} style={{ fontSize: 12 }} />
-          <button className="pb-btn" onClick={() => setCsv(SAMPLE)} style={{ marginLeft: 'auto' }}>
+          <button className="pb-btn" onClick={() => applyCsv(SAMPLE)} style={{ marginLeft: 'auto' }}>
             Use sample
           </button>
         </div>
@@ -78,14 +106,20 @@ export default function Import() {
           placeholder="Paste CSV here (first row = headers)"
           value={csv}
           onChange={(e) => setCsv(e.target.value)}
-          style={{ minHeight: 120, fontFamily: 'ui-monospace, monospace', fontSize: 12, marginBottom: 12 }}
+          style={{ minHeight: 120, fontFamily: 'ui-monospace, monospace', fontSize: 12, marginBottom: 10 }}
         />
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: 'var(--pb-text-muted)' }}>
+            {headers.length ? `${headers.length} columns detected` : 'Paste or upload to detect columns'}
+          </span>
+          <button className="pb-btn" style={{ fontSize: 11, padding: '4px 8px' }} onClick={autoDetect} disabled={!headers.length}>
+            Auto-detect columns
+          </button>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
-          {field('date', 'Date column')}
-          {field('amount', 'Amount column')}
-          {field('kind', 'Type column')}
-          {field('payer', 'Payer column')}
+          {FIELDS.map((f) => field(f))}
         </div>
 
         <button className="pb-btn pb-btn-primary" onClick={doImport} disabled={busy || !csv.trim()}>
