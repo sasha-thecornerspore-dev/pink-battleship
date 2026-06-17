@@ -27,6 +27,7 @@ export const qk = {
   assistant: ['assistant'] as const,
   schedule: ['schedule'] as const,
   compliance: ['compliance'] as const,
+  obs: ['obs'] as const,
 }
 
 export const usePnl = () => useQuery({ queryKey: qk.pnl, queryFn: () => pb.pnl.summary() })
@@ -35,3 +36,4 @@ export const useRates = () => useQuery({ queryKey: qk.rates, queryFn: () => pb.r
 export const usePrivacy = () => useQuery({ queryKey: qk.privacy, queryFn: () => pb.privacy.dataFlows() })
 export const useFans = () => useQuery({ queryKey: qk.fans, queryFn: () => pb.fans.list() })
 export const useStats = () => useQuery({ queryKey: qk.stats, queryFn: () => pb.stats.report() })
+export const useObs = () => useQuery({ queryKey: qk.obs, queryFn: () => pb.obs.status(), refetchInterval: 5000 })

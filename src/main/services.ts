@@ -19,6 +19,7 @@ import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { PROVIDER_HTTP, composePrompt } from '@core/assistant/providerHttp'
+import { fetchObsStatus } from '@core/obs/obsClient'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
@@ -26,7 +27,7 @@ import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/c
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -360,6 +361,25 @@ export class AppServices {
   }
   dmcaNotice(input: DmcaInput): string {
     return ComplianceService.dmca(input)
+  }
+
+  // --- OBS (local studio control) ---
+
+  private obsAddress(): string {
+    return this.requireDb().getSetting('obs:address') ?? 'ws://127.0.0.1:4455'
+  }
+  async obsStatus(): Promise<ObsStatus> {
+    if (!this.db) return { connected: false, streaming: false, recording: false, streamSeconds: 0, currentScene: '', scenes: [], error: 'Vault is locked.' }
+    return fetchObsStatus(this.obsAddress(), { password: this.secrets.get('obs.password') ?? '' })
+  }
+  async connectObs(address: string, password: string): Promise<ObsStatus> {
+    this.requireDb().setSetting('obs:address', address || 'ws://127.0.0.1:4455')
+    if (password) this.secrets.set('obs.password', password)
+    return this.obsStatus()
+  }
+  disconnectObs(): void {
+    this.requireDb().setSetting('obs:address', '')
+    this.secrets.delete('obs.password')
   }
 
   // --- rates ---

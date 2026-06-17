@@ -1,5 +1,5 @@
 import type { PbApiContract, VaultStatus, PrivacyReport } from '@shared/ipc'
-import type { ConnectorInfo, RateRule, ThemeId, ThemeMode, Transaction } from '@shared/models'
+import type { ConnectorInfo, ObsStatus, RateRule, ThemeId, ThemeMode, Transaction } from '@shared/models'
 import { InMemoryDatabase } from '@core/db/inMemoryDatabase'
 import { PnlService } from '@core/pnl/pnlService'
 import { FanService } from '@core/fans/fanService'
@@ -88,6 +88,14 @@ function seed(): void {
   sched.create({ platformId: 'reddit', kind: 'promo', title: 'SFW teaser cross-post', caption: '', scheduledAt: '2026-06-17T19:00:00Z' })
   sched.create({ platformId: 'fansly', kind: 'post', title: 'Shower set', caption: '', scheduledAt: '2026-06-18T21:00:00Z' })
   sched.create({ platformId: 'manyvids', kind: 'post', title: 'Custom clip release', caption: '', scheduledAt: '2026-06-20T17:00:00Z' })
+  db.setSetting('obs:address', 'ws://127.0.0.1:4455') // demo shows OBS already linked
+}
+
+function demoObs(): ObsStatus {
+  if (!db.getSetting('obs:address')) {
+    return { connected: false, streaming: false, recording: false, streamSeconds: 0, currentScene: '', scenes: [], error: 'Not connected. Open OBS and enable the WebSocket server (Tools → WebSocket Server Settings).' }
+  }
+  return { connected: true, streaming: true, recording: false, streamSeconds: 4215, currentScene: 'Main Cam', scenes: ['Main Cam', 'BRB', 'Close-up', 'Just Chatting'] }
 }
 
 function privacyReport(): PrivacyReport {
@@ -268,6 +276,17 @@ export function createDemoBackend(): PbApiContract {
       },
       togglePosted: (assetId, platformId) => {
         new GalleryService(db).togglePosted(assetId, platformId)
+        return Promise.resolve()
+      },
+    },
+    obs: {
+      status: () => Promise.resolve(demoObs()),
+      connect: (address) => {
+        db.setSetting('obs:address', address || 'ws://127.0.0.1:4455')
+        return Promise.resolve(demoObs())
+      },
+      disconnect: () => {
+        db.setSetting('obs:address', '')
         return Promise.resolve()
       },
     },

@@ -55,4 +55,8 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.complianceRemoveRecord, (_e, id: string) => services.removeComplianceRecord(id))
   ipcMain.handle(IPC.complianceSetCustodian, (_e, info) => services.setCustodian(info))
   ipcMain.handle(IPC.complianceDmca, (_e, input) => services.dmcaNotice(input))
+
+  ipcMain.handle(IPC.obsStatus, () => services.obsStatus())
+  ipcMain.handle(IPC.obsConnect, (_e, address: string, password: string) => services.connectObs(address, password))
+  ipcMain.handle(IPC.obsDisconnect, () => services.disconnectObs())
 }

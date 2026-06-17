@@ -1,4 +1,4 @@
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -90,6 +90,11 @@ export interface PbApiContract {
     setCustodian(info: { name: string; address: string }): Promise<void>
     dmca(input: DmcaInput): Promise<string>
   }
+  obs: {
+    status(): Promise<ObsStatus>
+    connect(address: string, password: string): Promise<ObsStatus>
+    disconnect(): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -132,4 +137,7 @@ export const IPC = {
   complianceRemoveRecord: 'compliance:remove-record',
   complianceSetCustodian: 'compliance:set-custodian',
   complianceDmca: 'compliance:dmca',
+  obsStatus: 'obs:status',
+  obsConnect: 'obs:connect',
+  obsDisconnect: 'obs:disconnect',
 } as const

@@ -67,6 +67,11 @@ const api: PbApiContract = {
     setCustodian: (info) => ipcRenderer.invoke(IPC.complianceSetCustodian, info),
     dmca: (input) => ipcRenderer.invoke(IPC.complianceDmca, input),
   },
+  obs: {
+    status: () => ipcRenderer.invoke(IPC.obsStatus),
+    connect: (address, password) => ipcRenderer.invoke(IPC.obsConnect, address, password),
+    disconnect: () => ipcRenderer.invoke(IPC.obsDisconnect),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

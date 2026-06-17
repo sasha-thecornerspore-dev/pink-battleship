@@ -212,3 +212,16 @@ export interface DmcaInput {
 
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'
+
+// --- OBS (local studio control via obs-websocket v5, 127.0.0.1) ---
+
+export interface ObsStatus {
+  connected: boolean
+  streaming: boolean
+  recording: boolean
+  streamSeconds: number
+  currentScene: string
+  scenes: string[]
+  /** Set when a connect attempt failed — a friendly, actionable reason. */
+  error?: string
+}
