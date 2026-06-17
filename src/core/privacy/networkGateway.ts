@@ -31,6 +31,16 @@ export class NetworkGateway {
     return this.allowlist.has(host)
   }
 
+  /**
+   * Open the gate for a host at the moment the user opts into reaching it (e.g.
+   * generating with a hosted AI provider they hold a key for). The subsequent
+   * request() call still logs the egress, so the "what leaves your machine"
+   * inspector stays truthful.
+   */
+  allow(host: string): void {
+    this.allowlist.add(host)
+  }
+
   async request<T>(req: EgressRequest, fn: () => Promise<T>): Promise<T> {
     const base: EgressEntry = {
       ts: this.now(),

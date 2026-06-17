@@ -22,7 +22,7 @@ All domain logic is plain Node, unit-tested without Electron. The Electron app a
 | `fans/` | rolodex aggregation + spender tiers |
 | `stats/` | net time-series (moving average) + day×hour earnings heatmap |
 | `gallery/` | metadata-first DAM (master gallery + sets, tags, posted-status) |
-| `assistant/` | safety screen (hard blocks + PII + creator boundaries) + provider router + template drafter |
+| `assistant/` | safety screen (hard blocks + PII + creator boundaries) + provider router + real generation (local Ollama + hosted BYO-key adapters: Gemini/Groq/Cerebras/OpenRouter/Claude/OpenAI/Venice/Atlas) with template fallback |
 | `schedule/` | content-calendar items |
 | `compliance/` | 2257 records + custodian statement + tax set-aside + DMCA generator |
 
