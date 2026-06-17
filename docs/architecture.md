@@ -24,6 +24,7 @@ All domain logic is plain Node, unit-tested without Electron. The Electron app a
 | `gallery/` | metadata-first DAM (master gallery + sets, tags, posted-status) |
 | `assistant/` | safety screen (hard blocks + PII + creator boundaries) + provider router + real generation (local Ollama + hosted BYO-key adapters: Gemini/Groq/Cerebras/OpenRouter/Claude/OpenAI/Venice/Atlas) with template fallback |
 | `obs/` | obs-websocket v5 client (auth + one-shot status poll) for local OBS Studio control — on-device, never via the gateway |
+| `website/` | pure link-in-bio site generator (escaped HTML + 18+ age gate, self-contained, no external requests) |
 | `schedule/` | content-calendar items |
 | `compliance/` | 2257 records + custodian statement + tax set-aside + DMCA generator |
 

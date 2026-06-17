@@ -85,6 +85,10 @@ await page.getByRole('button', { name: 'Live (OBS)' }).click()
 await page.getByText('Scenes').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'live.png') })
 
+await page.getByRole('button', { name: 'Website' }).click()
+await page.getByText('Live preview').waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'website.png') })
+
 await page.getByRole('button', { name: 'Compliance' }).click()
 await page.getByText('2257 records vault').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'compliance.png') })

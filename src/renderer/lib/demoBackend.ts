@@ -11,6 +11,8 @@ import { ComplianceService } from '@core/compliance/complianceService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
+import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
+import type { SiteConfig } from '@shared/models'
 
 // In-browser demo backend: the SAME core logic the Electron app uses, running
 // over an in-memory database. Active only when window.pb is absent (i.e. opened
@@ -89,6 +91,21 @@ function seed(): void {
   sched.create({ platformId: 'fansly', kind: 'post', title: 'Shower set', caption: '', scheduledAt: '2026-06-18T21:00:00Z' })
   sched.create({ platformId: 'manyvids', kind: 'post', title: 'Custom clip release', caption: '', scheduledAt: '2026-06-20T17:00:00Z' })
   db.setSetting('obs:address', 'ws://127.0.0.1:4455') // demo shows OBS already linked
+  const site: SiteConfig = {
+    handle: 'rosiebelle',
+    displayName: 'Rosie Belle',
+    tagline: 'cam shows · customs · clips',
+    bio: 'New drops every Friday 🩷 Tips always appreciated. Be sweet.',
+    links: [
+      { label: 'OnlyFans — subscribe', url: 'https://onlyfans.com/rosiebelle' },
+      { label: 'Chaturbate — live tonight', url: 'https://chaturbate.com/rosiebelle' },
+      { label: 'ManyVids — clip store', url: 'https://manyvids.com/rosiebelle' },
+      { label: 'Wishlist', url: 'https://throne.com/rosiebelle' },
+    ],
+    theme: 'blush',
+    ageGate: true,
+  }
+  db.setSetting('website:config', JSON.stringify(site))
 }
 
 function demoObs(): ObsStatus {
@@ -288,6 +305,25 @@ export function createDemoBackend(): PbApiContract {
       disconnect: () => {
         db.setSetting('obs:address', '')
         return Promise.resolve()
+      },
+    },
+    website: {
+      getConfig: () => {
+        const raw = db.getSetting('website:config')
+        return Promise.resolve(raw ? (JSON.parse(raw) as SiteConfig) : DEFAULT_SITE)
+      },
+      save: (config) => {
+        db.setSetting('website:config', JSON.stringify(config))
+        return Promise.resolve()
+      },
+      export: (config) => {
+        const blob = new Blob([buildSite(config)], { type: 'text/html' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `${config.handle || 'links'}-index.html`
+        a.click()
+        URL.revokeObjectURL(a.href)
+        return Promise.resolve('(downloaded)')
       },
     },
   }

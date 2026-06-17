@@ -213,6 +213,23 @@ export interface DmcaInput {
 export type ThemeId = 'blush' | 'lavender' | 'rose'
 export type ThemeMode = 'light' | 'dark'
 
+// --- Website builder (link-in-bio, generated locally) ---
+
+export interface SiteLink {
+  label: string
+  url: string
+}
+
+export interface SiteConfig {
+  handle: string
+  displayName: string
+  tagline: string
+  bio: string
+  links: SiteLink[]
+  theme: ThemeId
+  ageGate: boolean
+}
+
 // --- OBS (local studio control via obs-websocket v5, 127.0.0.1) ---
 
 export interface ObsStatus {

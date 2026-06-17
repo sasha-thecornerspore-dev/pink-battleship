@@ -1,4 +1,5 @@
-import { app } from 'electron'
+import { app, dialog } from 'electron'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Database } from '@core/db/database'
 import { SqlcipherDatabase } from '@core/db/sqlcipherDatabase'
@@ -20,6 +21,7 @@ import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
 import { PROVIDER_HTTP, composePrompt } from '@core/assistant/providerHttp'
 import { fetchObsStatus } from '@core/obs/obsClient'
+import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
@@ -27,7 +29,7 @@ import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/c
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -380,6 +382,27 @@ export class AppServices {
   disconnectObs(): void {
     this.requireDb().setSetting('obs:address', '')
     this.secrets.delete('obs.password')
+  }
+
+  // --- website builder ---
+
+  websiteConfig(): SiteConfig {
+    const raw = this.requireDb().getSetting('website:config')
+    return raw ? (JSON.parse(raw) as SiteConfig) : DEFAULT_SITE
+  }
+  saveWebsite(config: SiteConfig): void {
+    this.requireDb().setSetting('website:config', JSON.stringify(config))
+  }
+  async exportWebsite(config: SiteConfig): Promise<string | null> {
+    const html = buildSite(config)
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export link-in-bio site',
+      defaultPath: `${config.handle || 'links'}-index.html`,
+      filters: [{ name: 'HTML', extensions: ['html'] }],
+    })
+    if (canceled || !filePath) return null
+    writeFileSync(filePath, html, 'utf8')
+    return filePath
   }
 
   // --- rates ---

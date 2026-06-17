@@ -1,4 +1,4 @@
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
+import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -95,6 +95,11 @@ export interface PbApiContract {
     connect(address: string, password: string): Promise<ObsStatus>
     disconnect(): Promise<void>
   }
+  website: {
+    getConfig(): Promise<SiteConfig>
+    save(config: SiteConfig): Promise<void>
+    export(config: SiteConfig): Promise<string | null>
+  }
 }
 
 export const IPC = {
@@ -140,4 +145,7 @@ export const IPC = {
   obsStatus: 'obs:status',
   obsConnect: 'obs:connect',
   obsDisconnect: 'obs:disconnect',
+  websiteGetConfig: 'website:get-config',
+  websiteSave: 'website:save',
+  websiteExport: 'website:export',
 } as const

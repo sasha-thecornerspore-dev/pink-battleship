@@ -10,6 +10,7 @@ import Galleries from './screens/Galleries'
 import Assistant from './screens/Assistant'
 import Calendar from './screens/Calendar'
 import Live from './screens/Live'
+import Website from './screens/Website'
 import Connectors from './screens/Connectors'
 import Import from './screens/Import'
 import Settings from './screens/Settings'
@@ -42,6 +43,7 @@ export default function Shell() {
         {route === 'assistant' && <Assistant />}
         {route === 'calendar' && <Calendar />}
         {route === 'live' && <Live />}
+        {route === 'website' && <Website />}
         {route === 'connectors' && <Connectors />}
         {route === 'import' && <Import />}
         {route === 'compliance' && <Compliance />}

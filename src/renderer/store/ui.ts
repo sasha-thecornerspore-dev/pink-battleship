@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { ThemeId, ThemeMode } from '@shared/models'
 
-export type Route = 'dashboard' | 'stats' | 'fans' | 'galleries' | 'assistant' | 'calendar' | 'live' | 'connectors' | 'import' | 'compliance' | 'settings'
+export type Route = 'dashboard' | 'stats' | 'fans' | 'galleries' | 'assistant' | 'calendar' | 'live' | 'website' | 'connectors' | 'import' | 'compliance' | 'settings'
 
 interface UiState {
   route: Route

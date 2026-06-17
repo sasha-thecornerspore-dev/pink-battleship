@@ -59,4 +59,8 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.obsStatus, () => services.obsStatus())
   ipcMain.handle(IPC.obsConnect, (_e, address: string, password: string) => services.connectObs(address, password))
   ipcMain.handle(IPC.obsDisconnect, () => services.disconnectObs())
+
+  ipcMain.handle(IPC.websiteGetConfig, () => services.websiteConfig())
+  ipcMain.handle(IPC.websiteSave, (_e, config) => services.saveWebsite(config))
+  ipcMain.handle(IPC.websiteExport, (_e, config) => services.exportWebsite(config))
 }

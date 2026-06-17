@@ -72,6 +72,11 @@ const api: PbApiContract = {
     connect: (address, password) => ipcRenderer.invoke(IPC.obsConnect, address, password),
     disconnect: () => ipcRenderer.invoke(IPC.obsDisconnect),
   },
+  website: {
+    getConfig: () => ipcRenderer.invoke(IPC.websiteGetConfig),
+    save: (config) => ipcRenderer.invoke(IPC.websiteSave, config),
+    export: (config) => ipcRenderer.invoke(IPC.websiteExport, config),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)
