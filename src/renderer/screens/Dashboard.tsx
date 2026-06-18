@@ -1,6 +1,7 @@
-import { usePnl, useConnectors, money } from '../lib/api'
+import { usePnl, useConnectors, useObs, money } from '../lib/api'
 import MetricCard from '../components/MetricCard'
 import TrustChip from '../components/TrustChip'
+import { useUi } from '../store/ui'
 import type { ConnectorInfo, PnlSummary } from '@shared/models'
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -22,6 +23,8 @@ export default function Dashboard() {
         <TrustChip />
       </div>
 
+      <LiveBanner />
+
       {pnlQ.isLoading || !pnlQ.data ? (
         <p style={{ color: 'var(--pb-text-muted)' }}>Loading…</p>
       ) : pnlQ.data.byPlatform.length === 0 ? (
@@ -36,6 +39,32 @@ export default function Dashboard() {
         <Body s={pnlQ.data} connectors={connQ.data ?? []} />
       )}
     </div>
+  )
+}
+
+function LiveBanner() {
+  const obs = useObs()
+  const setRoute = useUi((s) => s.setRoute)
+  const d = obs.data
+  if (!d?.connected || !d.streaming) return null
+  const h = Math.floor(d.streamSeconds / 3600)
+  const m = Math.floor((d.streamSeconds % 3600) / 60)
+  const sec = d.streamSeconds % 60
+  const dur = `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+  return (
+    <button
+      onClick={() => setRoute('live')}
+      className="pb-card"
+      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, borderColor: 'var(--pb-danger)' }}
+    >
+      <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--pb-danger)', flexShrink: 0 }} />
+      <b style={{ color: 'var(--pb-danger)', fontSize: 13, flexShrink: 0 }}>LIVE on OBS</b>
+      <span style={{ fontSize: 12, color: 'var(--pb-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {dur} · Scene: {d.currentScene || '—'}
+        {d.recording ? ' · recording' : ''}
+      </span>
+      <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--pb-primary-deep)', flexShrink: 0 }}>Open Live →</span>
+    </button>
   )
 }
 
