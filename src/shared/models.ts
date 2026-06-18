@@ -135,6 +135,14 @@ export interface Asset {
   postedTo: string[]
   dims: string
   addedAt: string
+  /** Absolute path to the original file (reference-in-place — the app never copies the bytes). */
+  sourcePath?: string
+  /** Size of the original file, bytes. */
+  sizeBytes?: number
+  /** Video length in seconds (images: undefined). */
+  durationSeconds?: number
+  /** Custom-protocol URL (pbthumb://…) for a generated thumbnail, when one exists. */
+  thumb?: string
 }
 
 export type AssistantTask = 'caption' | 'fan_reply' | 'content_idea' | 'legal'

@@ -3,6 +3,9 @@ import { join } from 'node:path'
 import { AppServices } from './services'
 import { registerIpc } from './ipc'
 import { initAutoUpdate } from './updater'
+import { registerThumbScheme, handleThumbProtocol } from './thumbProtocol'
+
+registerThumbScheme() // must run before app is ready
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -33,6 +36,7 @@ function createWindow(): BrowserWindow {
 
 app.whenReady().then(() => {
   const services = new AppServices()
+  handleThumbProtocol(services.thumbDir())
   registerIpc(services)
   createWindow()
   initAutoUpdate()

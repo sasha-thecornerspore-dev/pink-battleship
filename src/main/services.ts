@@ -1,5 +1,5 @@
 import { app, dialog } from 'electron'
-import { writeFileSync } from 'node:fs'
+import { writeFileSync, mkdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Database } from '@core/db/database'
 import { SqlcipherDatabase } from '@core/db/sqlcipherDatabase'
@@ -22,6 +22,8 @@ import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantServic
 import { PROVIDER_HTTP, composePrompt, providerModelDefaults } from '@core/assistant/providerHttp'
 import { fetchObsStatus } from '@core/obs/obsClient'
 import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
+import { buildImportDrafts, isSupportedMedia, type ProbedFile } from '@core/gallery/mediaImport'
+import { createNodeMediaProbe } from './mediaProbe'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
 import { NetworkGateway } from '@core/privacy/networkGateway'
@@ -230,6 +232,39 @@ export class AppServices {
   }
   toggleAssetPosted(assetId: string, platformId: string): void {
     new GalleryService(this.requireDb()).togglePosted(assetId, platformId)
+  }
+  thumbDir(): string {
+    return join(app.getPath('userData'), 'thumbs')
+  }
+  async importMedia(galleryId: string): Promise<{ added: number; skipped: number }> {
+    const gallery = new GalleryService(this.requireDb())
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Import media — files are referenced in place, never copied',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Media', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'heic', 'bmp', 'tiff', 'mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi'] }],
+    })
+    if (canceled || filePaths.length === 0) return { added: 0, skipped: 0 }
+
+    const dir = this.thumbDir()
+    mkdirSync(dir, { recursive: true })
+    const probe = createNodeMediaProbe(dir)
+
+    const probed: ProbedFile[] = []
+    for (const path of filePaths) {
+      if (!isSupportedMedia(path)) continue
+      let sizeBytes = 0
+      try {
+        sizeBytes = statSync(path).size
+      } catch {
+        /* unreadable → size 0 */
+      }
+      probed.push({ path, sizeBytes, meta: await probe.probe(path) })
+    }
+
+    const existing = gallery.assets('master')
+    const { drafts, skipped } = buildImportDrafts(existing, probed)
+    gallery.addAssets(galleryId, drafts)
+    return { added: drafts.length, skipped: skipped + (filePaths.length - probed.length) }
   }
 
   // --- AI assistant ---

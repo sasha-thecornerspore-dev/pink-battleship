@@ -306,6 +306,15 @@ export function createDemoBackend(): PbApiContract {
         new GalleryService(db).togglePosted(assetId, platformId)
         return Promise.resolve()
       },
+      importFiles: (galleryId) => {
+        // The desktop app opens a native file picker; the browser demo simulates
+        // a couple of reference-in-place imports so the flow is visible.
+        new GalleryService(db).addAssets(galleryId, [
+          { filename: 'imported_shoot_01.jpg', mediaKind: 'image', nsfw: true, tags: ['imported'], postedTo: [], dims: '3024×4032', sourcePath: 'C:\\Users\\you\\Pictures\\imported_shoot_01.jpg', sizeBytes: 5_242_880 },
+          { filename: 'imported_clip.mp4', mediaKind: 'video', nsfw: true, tags: ['imported'], postedTo: [], dims: '0:42', sourcePath: 'C:\\Users\\you\\Videos\\imported_clip.mp4', sizeBytes: 84_320_768, durationSeconds: 42 },
+        ])
+        return Promise.resolve({ added: 2, skipped: 0 })
+      },
     },
     obs: {
       status: () => Promise.resolve(demoObs()),

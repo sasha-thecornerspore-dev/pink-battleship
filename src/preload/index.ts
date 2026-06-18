@@ -45,6 +45,7 @@ const api: PbApiContract = {
     assets: (galleryId) => ipcRenderer.invoke(IPC.galleriesAssets, galleryId),
     setTags: (assetId, tags) => ipcRenderer.invoke(IPC.assetsSetTags, assetId, tags),
     togglePosted: (assetId, platformId) => ipcRenderer.invoke(IPC.assetsTogglePosted, assetId, platformId),
+    importFiles: (galleryId) => ipcRenderer.invoke(IPC.galleriesImport, galleryId),
   },
   assistant: {
     draft: (req) => ipcRenderer.invoke(IPC.assistantDraft, req),

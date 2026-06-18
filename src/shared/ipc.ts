@@ -68,6 +68,7 @@ export interface PbApiContract {
     assets(galleryId: string): Promise<Asset[]>
     setTags(assetId: string, tags: string[]): Promise<void>
     togglePosted(assetId: string, platformId: string): Promise<void>
+    importFiles(galleryId: string): Promise<{ added: number; skipped: number }>
   }
   assistant: {
     draft(req: DraftRequest): Promise<DraftResult>
@@ -128,6 +129,7 @@ export const IPC = {
   galleriesAssets: 'galleries:assets',
   assetsSetTags: 'assets:set-tags',
   assetsTogglePosted: 'assets:toggle-posted',
+  galleriesImport: 'galleries:import',
   assistantDraft: 'assistant:draft',
   assistantConfig: 'assistant:config',
   assistantSetBoundaries: 'assistant:set-boundaries',

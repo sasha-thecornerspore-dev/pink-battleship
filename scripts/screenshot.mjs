@@ -69,6 +69,8 @@ await page.screenshot({ path: join(outDir, 'stats.png') })
 
 await page.getByRole('button', { name: 'Galleries' }).click()
 await page.getByText(/Master gallery/i).waitFor({ timeout: 5000 })
+await page.getByRole('button', { name: /Import files/ }).click()
+await page.getByText('imported_clip.mp4').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'galleries.png') })
 
 await page.getByRole('button', { name: 'Assistant' }).click()

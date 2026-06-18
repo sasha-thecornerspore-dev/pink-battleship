@@ -20,11 +20,24 @@ function hash(s: string): number {
   return h
 }
 
+function fmtSize(bytes?: number): string {
+  if (!bytes) return ''
+  const u = ['B', 'KB', 'MB', 'GB']
+  let n = bytes
+  let i = 0
+  while (n >= 1024 && i < u.length - 1) {
+    n /= 1024
+    i++
+  }
+  return `${n < 10 && i > 0 ? n.toFixed(1) : Math.round(n)} ${u[i]}`
+}
+
 export default function Galleries() {
   const qc = useQueryClient()
   const galleriesQ = useQuery({ queryKey: qk.galleries, queryFn: () => pb.galleries.list() })
   const [selected, setSelected] = useState('master')
   const [safe, setSafe] = useState(false)
+  const [busy, setBusy] = useState(false)
   const assetsQ = useQuery({ queryKey: [...qk.galleries, 'assets', selected], queryFn: () => pb.galleries.assets(selected) })
 
   const galleries = galleriesQ.data ?? []
@@ -38,13 +51,29 @@ export default function Galleries() {
     setSelected(g.id)
   }
 
+  const importFiles = async () => {
+    setBusy(true)
+    try {
+      await pb.galleries.importFiles(selected)
+      await qc.invalidateQueries({ queryKey: qk.galleries })
+      await qc.invalidateQueries({ queryKey: [...qk.galleries, 'assets', selected] })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 18 }}>Galleries</div>
-        <button className={safe ? 'pb-btn pb-btn-primary' : 'pb-btn'} onClick={() => setSafe((s) => !s)} style={{ fontSize: 12 }}>
-          Safe mode {safe ? 'on' : 'off'}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="pb-btn" onClick={importFiles} disabled={busy} style={{ fontSize: 12 }} title="Reference files in place — originals are never copied">
+            {busy ? 'Importing…' : 'Import files…'}
+          </button>
+          <button className={safe ? 'pb-btn pb-btn-primary' : 'pb-btn'} onClick={() => setSafe((s) => !s)} style={{ fontSize: 12 }}>
+            Safe mode {safe ? 'on' : 'off'}
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, alignItems: 'start' }}>
@@ -79,7 +108,8 @@ export default function Galleries() {
         {assets.length === 0 ? (
           <div className="pb-card" style={{ padding: 20 }}>
             <span style={{ color: 'var(--pb-text-muted)', fontSize: 13 }}>
-              No assets yet. File import + thumbnails are coming — this build models the catalog (tags, NSFW, posted-status).
+              No assets yet. Click <b>Import files…</b> to add photos and videos — they’re referenced in place (never copied),
+              with thumbnails and dimensions read on the spot.
             </span>
           </div>
         ) : (
@@ -143,7 +173,13 @@ function AssetTile({ asset, safe }: { asset: Asset; safe: boolean }) {
           color: 'var(--pb-primary-deep)',
         }}
       >
-        {hidden ? <span style={{ fontSize: 12, color: 'var(--pb-text-muted)' }}>Hidden · safe mode</span> : <MediaGlyph kind={asset.mediaKind} />}
+        {hidden ? (
+          <span style={{ fontSize: 12, color: 'var(--pb-text-muted)' }}>Hidden · safe mode</span>
+        ) : asset.thumb ? (
+          <img src={asset.thumb} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <MediaGlyph kind={asset.mediaKind} />
+        )}
         {asset.nsfw && !hidden && (
           <span style={{ position: 'absolute', top: 6, right: 6, fontSize: 9, background: 'rgba(0,0,0,0.35)', color: '#fff', padding: '1px 6px', borderRadius: 10 }}>
             18+
@@ -156,7 +192,8 @@ function AssetTile({ asset, safe }: { asset: Asset; safe: boolean }) {
         )}
       </div>
       <div style={{ padding: '8px 10px' }}>
-        <div style={{ fontSize: 12, marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.filename}</div>
+        <div style={{ fontSize: 12, marginBottom: asset.sizeBytes ? 2 : 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.filename}</div>
+        {asset.sizeBytes ? <div style={{ fontSize: 10, color: 'var(--pb-text-muted)', marginBottom: 5 }}>{fmtSize(asset.sizeBytes)} · referenced in place</div> : null}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6, alignItems: 'center' }}>
           {asset.tags.map((t) => (
             <span

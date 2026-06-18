@@ -12,6 +12,12 @@ files:
   - package.json
 asarUnpack:
   - "**/*.node"
+  # Optional native media tooling (thumbnails + probing) ships unpacked so the
+  # binaries are executable at runtime.
+  - "**/node_modules/sharp/**"
+  - "**/node_modules/@img/**"
+  - "**/node_modules/ffmpeg-static/**"
+  - "**/node_modules/ffprobe-static/**"
 
 # Publish to GitHub Releases (also the electron-updater feed). Owner/repo are
 # inferred from the `repository` field in package.json — update it to your repo.
