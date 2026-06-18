@@ -1,4 +1,4 @@
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
+import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -71,11 +71,12 @@ export interface PbApiContract {
   }
   assistant: {
     draft(req: DraftRequest): Promise<DraftResult>
-    config(): Promise<{ boundaries: string[]; providers: AssistantProvider[]; available: string[]; localModel: string }>
+    config(): Promise<AssistantConfigResult>
     setBoundaries(boundaries: string[]): Promise<void>
     setKey(provider: string, key: string): Promise<void>
     ollama(): Promise<{ running: boolean; models: string[] }>
     setLocalModel(model: string): Promise<void>
+    setModel(provider: string, model: string): Promise<void>
   }
   schedule: {
     list(): Promise<ScheduledItem[]>
@@ -133,6 +134,7 @@ export const IPC = {
   assistantSetKey: 'assistant:set-key',
   assistantOllama: 'assistant:ollama',
   assistantSetLocalModel: 'assistant:set-local-model',
+  assistantSetModel: 'assistant:set-model',
   scheduleList: 'schedule:list',
   scheduleCreate: 'schedule:create',
   scheduleSetStatus: 'schedule:set-status',

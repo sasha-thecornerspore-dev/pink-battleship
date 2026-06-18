@@ -6,6 +6,7 @@ import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
+import { providerModelDefaults } from '@core/assistant/providerHttp'
 import { ScheduleService } from '@core/schedule/scheduleService'
 import { ComplianceService } from '@core/compliance/complianceService'
 import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/connectors/chaturbate'
@@ -106,6 +107,7 @@ function seed(): void {
     ageGate: true,
   }
   db.setSetting('website:config', JSON.stringify(site))
+  db.setSetting('ai.groqKey', 'demo-key') // shows a connected provider + its model picker in Settings
 }
 
 function demoObs(): ObsStatus {
@@ -232,7 +234,12 @@ export function createDemoBackend(): PbApiContract {
       config: () => {
         const r = db.getSetting('assistant:boundaries')
         const boundaries = r ? (JSON.parse(r) as string[]) : []
-        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: demoAiAvailable(), localModel: db.getSetting('ai.localModel') ?? '' })
+        const models: Record<string, string> = {}
+        for (const id of Object.keys(providerModelDefaults())) {
+          const v = db.getSetting(`ai.${id}Model`)
+          if (v) models[id] = v
+        }
+        return Promise.resolve({ boundaries, providers: ALL_PROVIDERS, available: demoAiAvailable(), localModel: db.getSetting('ai.localModel') ?? '', models, modelDefaults: providerModelDefaults() })
       },
       setBoundaries: (boundaries) => {
         db.setSetting('assistant:boundaries', JSON.stringify(boundaries))
@@ -245,6 +252,10 @@ export function createDemoBackend(): PbApiContract {
       ollama: () => Promise.resolve({ running: true, models: ['dolphin-llama3:8b', 'mistral-nemo:12b', 'nous-hermes3:8b'] }),
       setLocalModel: (model) => {
         db.setSetting('ai.localModel', model)
+        return Promise.resolve()
+      },
+      setModel: (provider, model) => {
+        db.setSetting(`ai.${provider}Model`, model.trim())
         return Promise.resolve()
       },
     },

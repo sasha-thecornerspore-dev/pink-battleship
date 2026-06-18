@@ -156,6 +156,17 @@ export interface AssistantConfig {
   boundaries: string[]
 }
 
+export interface AssistantConfigResult {
+  boundaries: string[]
+  providers: AssistantProvider[]
+  available: string[]
+  localModel: string
+  /** Per-provider model overrides the user has saved (id → model). */
+  models: Record<string, string>
+  /** Built-in default model per hosted provider (id → model). */
+  modelDefaults: Record<string, string>
+}
+
 export interface DraftRequest {
   task: AssistantTask
   context: string

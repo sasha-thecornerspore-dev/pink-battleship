@@ -19,7 +19,7 @@ import { FanService } from '@core/fans/fanService'
 import { StatsService } from '@core/stats/statsService'
 import { GalleryService } from '@core/gallery/galleryService'
 import { AssistantService, ALL_PROVIDERS } from '@core/assistant/assistantService'
-import { PROVIDER_HTTP, composePrompt } from '@core/assistant/providerHttp'
+import { PROVIDER_HTTP, composePrompt, providerModelDefaults } from '@core/assistant/providerHttp'
 import { fetchObsStatus } from '@core/obs/obsClient'
 import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
@@ -29,7 +29,7 @@ import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/c
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantProvider, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
+import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -262,7 +262,8 @@ export class AppServices {
     const cfg = PROVIDER_HTTP[provider]
     const key = this.secrets.get(`ai.${provider}Key`)
     if (!cfg || !key) return null
-    const { url, init } = cfg.build(key, composePrompt(req))
+    const model = this.requireDb().getSetting(`ai.${provider}Model`) || cfg.defaultModel
+    const { url, init } = cfg.build(key, composePrompt(req), model)
     this.gateway.allow(cfg.host) // user holds a key + initiated this draft
     try {
       return await this.gateway.request({ host: cfg.host, purpose: `AI draft (${provider})` }, async () => {
@@ -293,12 +294,20 @@ export class AppServices {
       return null
     }
   }
-  assistantConfig(): { boundaries: string[]; providers: AssistantProvider[]; available: string[]; localModel: string } {
+  assistantConfig(): AssistantConfigResult {
+    const db = this.requireDb()
+    const models: Record<string, string> = {}
+    for (const id of Object.keys(PROVIDER_HTTP)) {
+      const v = db.getSetting(`ai.${id}Model`)
+      if (v) models[id] = v
+    }
     return {
       boundaries: this.assistantBoundaries(),
       providers: ALL_PROVIDERS,
       available: this.assistantAvailable(),
-      localModel: this.requireDb().getSetting('ai.localModel') ?? '',
+      localModel: db.getSetting('ai.localModel') ?? '',
+      models,
+      modelDefaults: providerModelDefaults(),
     }
   }
   setAssistantBoundaries(boundaries: string[]): void {
@@ -307,6 +316,9 @@ export class AppServices {
   setAssistantKey(provider: string, key: string): void {
     if (key) this.secrets.set(`ai.${provider}Key`, key)
     else this.secrets.delete(`ai.${provider}Key`)
+  }
+  setProviderModel(provider: string, model: string): void {
+    this.requireDb().setSetting(`ai.${provider}Model`, model.trim())
   }
   async ollamaStatus(): Promise<{ running: boolean; models: string[] }> {
     // Ollama is on-device — a direct localhost call, never routed through the

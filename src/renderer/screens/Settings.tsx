@@ -150,11 +150,17 @@ function AiKeys() {
   const providers = cfg.data?.providers ?? []
   const available = new Set(cfg.data?.available ?? [])
   const localModel = cfg.data?.localModel ?? ''
+  const modelOverrides = cfg.data?.models ?? {}
+  const modelDefaults = cfg.data?.modelDefaults ?? {}
   const running = !!ollama.data?.running
   const models = ollama.data?.models ?? []
 
   const saveKey = async (provider: string, key: string) => {
     await pb.assistant.setKey(provider, key)
+    await qc.invalidateQueries({ queryKey: qk.assistant })
+  }
+  const saveModel = async (provider: string, model: string) => {
+    await pb.assistant.setModel(provider, model)
     await qc.invalidateQueries({ queryKey: qk.assistant })
   }
   const pickModel = async (m: string) => {
@@ -197,12 +203,12 @@ function AiKeys() {
 
       <TierHeader label="Free · hosted (SFW, no GPU)" />
       {byTier('free-hosted').map((p) => (
-        <KeyRow key={p.id} p={p} connected={available.has(p.id)} onSave={saveKey} />
+        <KeyRow key={p.id} p={p} connected={available.has(p.id)} onSave={saveKey} model={modelOverrides[p.id] ?? ''} modelDefault={modelDefaults[p.id] ?? ''} onSaveModel={saveModel} />
       ))}
 
       <TierHeader label="Paid · bring your own key" />
       {byTier('paid').map((p) => (
-        <KeyRow key={p.id} p={p} connected={available.has(p.id)} onSave={saveKey} />
+        <KeyRow key={p.id} p={p} connected={available.has(p.id)} onSave={saveKey} model={modelOverrides[p.id] ?? ''} modelDefault={modelDefaults[p.id] ?? ''} onSaveModel={saveModel} />
       ))}
     </Section>
   )
@@ -247,7 +253,21 @@ function ProviderHead({ p, dot, right }: { p: AssistantProvider; dot: boolean; r
   )
 }
 
-function KeyRow({ p, connected, onSave }: { p: AssistantProvider; connected: boolean; onSave: (provider: string, key: string) => void }) {
+function KeyRow({
+  p,
+  connected,
+  onSave,
+  model,
+  modelDefault,
+  onSaveModel,
+}: {
+  p: AssistantProvider
+  connected: boolean
+  onSave: (provider: string, key: string) => void
+  model: string
+  modelDefault: string
+  onSaveModel: (provider: string, model: string) => void
+}) {
   const [value, setValue] = useState('')
   return (
     <div style={{ marginBottom: 10 }}>
@@ -274,6 +294,40 @@ function KeyRow({ p, connected, onSave }: { p: AssistantProvider; connected: boo
           </>
         )}
       </div>
+      {connected && <ModelRow provider={p.id} value={model} placeholder={modelDefault} onSave={onSaveModel} />}
+    </div>
+  )
+}
+
+function ModelRow({ provider, value, placeholder, onSave }: { provider: string; value: string; placeholder: string; onSave: (provider: string, model: string) => void }) {
+  const [model, setModel] = useState(value)
+  const [saved, setSaved] = useState(false)
+  const dirty = model.trim() !== value.trim()
+  return (
+    <div style={{ display: 'flex', gap: 8, paddingLeft: 18, marginTop: 6, alignItems: 'center' }}>
+      <span style={{ fontSize: 11, color: 'var(--pb-text-muted)', flexShrink: 0 }}>Model</span>
+      <input
+        className="pb-input"
+        style={{ flex: 1, fontSize: 11 }}
+        placeholder={placeholder}
+        value={model}
+        onChange={(e) => {
+          setModel(e.target.value)
+          setSaved(false)
+        }}
+      />
+      <button
+        className="pb-btn"
+        style={{ fontSize: 11 }}
+        disabled={!dirty}
+        onClick={() => {
+          onSave(provider, model.trim())
+          setSaved(true)
+        }}
+      >
+        {saved ? 'Saved' : 'Set'}
+      </button>
+      {!value && !saved && <span style={{ fontSize: 10, color: 'var(--pb-text-muted)', flexShrink: 0 }}>default</span>}
     </div>
   )
 }

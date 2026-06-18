@@ -12,7 +12,9 @@ import type { AssistantTask, DraftRequest } from '@shared/models'
  */
 export interface ProviderHttp {
   host: string
-  build(key: string, prompt: string): { url: string; init: RequestInit }
+  /** Default model id; a per-provider override (Settings → AI) takes precedence. */
+  defaultModel: string
+  build(key: string, prompt: string, model: string): { url: string; init: RequestInit }
   parse(json: unknown): string | null
 }
 
@@ -21,10 +23,11 @@ const MAX_TOKENS = 600
 const json = (key: string) => ({ Authorization: `Bearer ${key}`, 'content-type': 'application/json' })
 
 /** OpenAI-compatible /chat/completions — Groq, Cerebras, OpenAI, Venice, OpenRouter, Atlas. */
-function openAiCompatible(host: string, url: string, model: string): ProviderHttp {
+function openAiCompatible(host: string, url: string, defaultModel: string): ProviderHttp {
   return {
     host,
-    build: (key, prompt) => ({
+    defaultModel,
+    build: (key, prompt, model) => ({
       url,
       init: {
         method: 'POST',
@@ -43,8 +46,9 @@ export const PROVIDER_HTTP: Record<string, ProviderHttp> = {
   // Free-hosted (SFW)
   gemini: {
     host: 'generativelanguage.googleapis.com',
-    build: (key, prompt) => ({
-      url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+    defaultModel: 'gemini-2.0-flash',
+    build: (key, prompt, model) => ({
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
       init: { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) },
     }),
     parse: (data) => {
@@ -58,12 +62,13 @@ export const PROVIDER_HTTP: Record<string, ProviderHttp> = {
   // Paid (SFW)
   claude: {
     host: 'api.anthropic.com',
-    build: (key, prompt) => ({
+    defaultModel: 'claude-3-5-haiku-latest',
+    build: (key, prompt, model) => ({
       url: 'https://api.anthropic.com/v1/messages',
       init: {
         method: 'POST',
         headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-3-5-haiku-latest', max_tokens: MAX_TOKENS, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model, max_tokens: MAX_TOKENS, messages: [{ role: 'user', content: prompt }] }),
       },
     }),
     parse: (data) => {
@@ -76,6 +81,11 @@ export const PROVIDER_HTTP: Record<string, ProviderHttp> = {
   venice: openAiCompatible('api.venice.ai', 'https://api.venice.ai/api/v1/chat/completions', 'venice-uncensored'),
   openrouter: openAiCompatible('openrouter.ai', 'https://openrouter.ai/api/v1/chat/completions', 'cognitivecomputations/dolphin-mixtral-8x22b'),
   atlas: openAiCompatible('api.atlascloud.ai', 'https://api.atlascloud.ai/v1/chat/completions', 'meta-llama/Llama-3.3-70B-Instruct'),
+}
+
+/** Map of provider id → default model, for surfacing editable defaults in Settings. */
+export function providerModelDefaults(): Record<string, string> {
+  return Object.fromEntries(Object.entries(PROVIDER_HTTP).map(([id, cfg]) => [id, cfg.defaultModel]))
 }
 
 const TASK_INSTRUCTION: Record<AssistantTask, string> = {

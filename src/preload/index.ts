@@ -53,6 +53,7 @@ const api: PbApiContract = {
     setKey: (provider, key) => ipcRenderer.invoke(IPC.assistantSetKey, provider, key),
     ollama: () => ipcRenderer.invoke(IPC.assistantOllama),
     setLocalModel: (model) => ipcRenderer.invoke(IPC.assistantSetLocalModel, model),
+    setModel: (provider, model) => ipcRenderer.invoke(IPC.assistantSetModel, provider, model),
   },
   schedule: {
     list: () => ipcRenderer.invoke(IPC.scheduleList),

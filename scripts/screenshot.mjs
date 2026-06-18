@@ -110,7 +110,7 @@ await page.screenshot({ path: join(outDir, 'connectors.png') })
 
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
-await page.getByText('AI providers — free vs paid').scrollIntoViewIfNeeded()
+await page.getByText('Groq').scrollIntoViewIfNeeded()
 await page.screenshot({ path: join(outDir, 'settings-ai.png') })
 
 await page.getByRole('button', { name: 'Settings' }).click()
