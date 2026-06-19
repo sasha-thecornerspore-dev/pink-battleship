@@ -87,6 +87,23 @@ export interface Fan {
   lapsed: boolean
 }
 
+export interface FanTxn {
+  occurredAt: string
+  grossAmount: number
+  net: number
+  kind: TransactionKind
+}
+
+export interface FanDetail {
+  fan: Fan
+  firstSeen: string
+  lastSeen: string
+  /** Net per transaction kind, e.g. { tip: 120, ppv: 80 }. */
+  byKind: Record<string, number>
+  /** This fan's transactions, newest first. */
+  transactions: FanTxn[]
+}
+
 export interface EarningsPoint {
   date: string
   net: number

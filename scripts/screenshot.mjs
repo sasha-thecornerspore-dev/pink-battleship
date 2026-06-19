@@ -61,6 +61,8 @@ await page.getByRole('button', { name: 'Skip' }).click()
 
 await page.getByRole('button', { name: 'Fans' }).click()
 await page.getByText(/ranked by net/i).waitFor({ timeout: 5000 })
+await page.getByText('kingmaker').first().click()
+await page.getByText('First seen').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'fans.png') })
 
 await page.getByRole('button', { name: 'Stats' }).click()

@@ -221,6 +221,7 @@ export function createDemoBackend(): PbApiContract {
         new FanService(db).setNote(fanId, note)
         return Promise.resolve()
       },
+      detail: (fanId) => Promise.resolve(new FanService(db).detail(fanId)),
     },
     stats: {
       report: () => Promise.resolve(new StatsService(db).report()),

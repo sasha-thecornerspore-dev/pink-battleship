@@ -64,4 +64,19 @@ describe('FanService', () => {
     const fan = svc.list().find((f) => f.id === 'chaturbate:whale_w')
     expect(fan?.note).toBe('loves blue lingerie, tips on Fridays')
   })
+
+  it('builds a per-fan detail with history, first/last seen, and per-kind net', () => {
+    const d = new FanService(seed()).detail('chaturbate:whale_w')
+    expect(d).not.toBeNull()
+    expect(d!.fan.payerRef).toBe('whale_w')
+    expect(d!.transactions).toHaveLength(2)
+    expect(d!.transactions[0].occurredAt).toBe('2026-05-09') // newest first
+    expect(d!.firstSeen).toBe('2026-05-01')
+    expect(d!.lastSeen).toBe('2026-05-09')
+    expect(d!.byKind.tip).toBe(650)
+  })
+
+  it('returns null for an unknown fan', () => {
+    expect(new FanService(seed()).detail('chaturbate:nobody')).toBeNull()
+  })
 })

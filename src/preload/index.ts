@@ -35,6 +35,7 @@ const api: PbApiContract = {
   fans: {
     list: () => ipcRenderer.invoke(IPC.fansList),
     setNote: (fanId, note) => ipcRenderer.invoke(IPC.fansSetNote, fanId, note),
+    detail: (fanId) => ipcRenderer.invoke(IPC.fansDetail, fanId),
   },
   stats: {
     report: () => ipcRenderer.invoke(IPC.statsReport),

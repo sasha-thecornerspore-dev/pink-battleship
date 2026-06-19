@@ -1,4 +1,4 @@
-import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
+import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, FanDetail, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -58,6 +58,7 @@ export interface PbApiContract {
   fans: {
     list(): Promise<Fan[]>
     setNote(fanId: string, note: string): Promise<void>
+    detail(fanId: string): Promise<FanDetail | null>
   }
   stats: {
     report(): Promise<StatsReport>
@@ -130,6 +131,7 @@ export const IPC = {
   privacyDataFlows: 'privacy:data-flows',
   fansList: 'fans:list',
   fansSetNote: 'fans:set-note',
+  fansDetail: 'fans:detail',
   statsReport: 'stats:report',
   galleriesList: 'galleries:list',
   galleriesCreateSet: 'galleries:create-set',

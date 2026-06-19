@@ -210,6 +210,9 @@ export class AppServices {
   setFanNote(fanId: string, note: string): void {
     new FanService(this.requireDb()).setNote(fanId, note)
   }
+  fanDetail(fanId: string) {
+    return new FanService(this.requireDb()).detail(fanId)
+  }
 
   // --- stats ---
 
