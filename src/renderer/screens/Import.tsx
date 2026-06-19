@@ -1,8 +1,8 @@
-import { useState, type ChangeEvent } from 'react'
+import { useState, useMemo, type ChangeEvent, type DragEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { pb, qk } from '../lib/api'
+import { pb, qk, money } from '../lib/api'
 import type { ImportCsvResult } from '@shared/ipc'
-import { guessCsvMapping, parseCsvHeaders, type CsvColumnMap } from '@core/connectors/manualCsv'
+import { guessCsvMapping, parseCsvHeaders, parseCsvTransactions, type CsvColumnMap } from '@core/connectors/manualCsv'
 
 const PLATFORMS = [
   { id: 'onlyfans', label: 'OnlyFans' },
@@ -30,24 +30,45 @@ export default function Import() {
   const [map, setMap] = useState<CsvColumnMap>({ date: 'date', amount: 'amount', kind: 'type', payer: 'payer' })
   const [result, setResult] = useState<ImportCsvResult | null>(null)
   const [busy, setBusy] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
 
   const headers = parseCsvHeaders(csv)
 
-  const applyCsv = (text: string) => {
+  const applyCsv = (text: string, pid = platformId) => {
     setCsv(text)
     const h = parseCsvHeaders(text)
-    if (h.length) setMap(guessCsvMapping(h))
+    if (h.length) setMap(guessCsvMapping(h, pid))
   }
-  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]
+  const readFile = (f: File | undefined) => {
     if (!f) return
     const r = new FileReader()
     r.onload = () => applyCsv(String(r.result))
     r.readAsText(f)
   }
-  const autoDetect = () => {
-    if (headers.length) setMap(guessCsvMapping(headers))
+  const onFile = (e: ChangeEvent<HTMLInputElement>) => readFile(e.target.files?.[0])
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    readFile(e.dataTransfer.files?.[0])
   }
+  const changePlatform = (id: string) => {
+    setPlatformId(id)
+    if (headers.length) setMap(guessCsvMapping(headers, id))
+  }
+  const autoDetect = () => {
+    if (headers.length) setMap(guessCsvMapping(headers, platformId))
+  }
+
+  // Live preview of exactly what will import, using the same parser as the import.
+  const preview = useMemo(() => {
+    if (!csv.trim() || !map.date || !map.amount) return null
+    try {
+      const r = parseCsvTransactions(csv, { platformId, map })
+      return { rows: r.transactions.slice(0, 3), valid: r.transactions.length, skipped: r.skipped.length }
+    } catch {
+      return null
+    }
+  }, [csv, map, platformId])
   const doImport = async () => {
     setBusy(true)
     try {
@@ -88,7 +109,7 @@ export default function Import() {
 
       <div className="pb-card" style={{ padding: 16 }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'center' }}>
-          <select className="pb-input" style={{ width: 180 }} value={platformId} onChange={(e) => setPlatformId(e.target.value)}>
+          <select className="pb-input" style={{ width: 180 }} value={platformId} onChange={(e) => changePlatform(e.target.value)}>
             {PLATFORMS.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label}
@@ -103,10 +124,24 @@ export default function Import() {
 
         <textarea
           className="pb-input"
-          placeholder="Paste CSV here (first row = headers)"
+          placeholder="Paste CSV here, or drag a .csv file onto this box (first row = headers)"
           value={csv}
           onChange={(e) => setCsv(e.target.value)}
-          style={{ minHeight: 120, fontFamily: 'ui-monospace, monospace', fontSize: 12, marginBottom: 10 }}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragOver(true)
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          style={{
+            minHeight: 120,
+            fontFamily: 'ui-monospace, monospace',
+            fontSize: 12,
+            marginBottom: 10,
+            borderColor: dragOver ? 'var(--pb-primary)' : undefined,
+            borderWidth: dragOver ? 2 : undefined,
+            background: dragOver ? 'var(--pb-active-bg)' : undefined,
+          }}
         />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -121,6 +156,38 @@ export default function Import() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
           {FIELDS.map((f) => field(f))}
         </div>
+
+        {preview && (
+          <div className="pb-card" style={{ padding: '10px 12px', marginBottom: 14, background: 'var(--pb-surface-2)' }}>
+            <div style={{ fontSize: 12, marginBottom: 8, color: 'var(--pb-text-muted)' }}>
+              Preview —{' '}
+              <b style={{ color: 'var(--pb-sage-deep)' }}>{preview.valid} will import</b>
+              {preview.skipped > 0 && <span style={{ color: 'var(--pb-danger)' }}> · {preview.skipped} will skip</span>}
+            </div>
+            {preview.rows.length > 0 && (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ color: 'var(--pb-text-muted)', textAlign: 'left' }}>
+                    <th style={th}>Date</th>
+                    <th style={th}>Amount</th>
+                    <th style={th}>Type</th>
+                    <th style={th}>Payer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.rows.map((t, i) => (
+                    <tr key={i}>
+                      <td style={td}>{t.occurredAt}</td>
+                      <td style={td}>{money(t.grossAmount)}</td>
+                      <td style={td}>{t.kind}</td>
+                      <td style={td}>{t.payerRef ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
 
         <button className="pb-btn pb-btn-primary" onClick={doImport} disabled={busy || !csv.trim()}>
           {busy ? 'Importing…' : 'Import'}
@@ -141,3 +208,6 @@ export default function Import() {
     </div>
   )
 }
+
+const th: React.CSSProperties = { padding: '2px 8px 6px 0', fontWeight: 500, borderBottom: '1px solid var(--pb-border)' }
+const td: React.CSSProperties = { padding: '4px 8px 4px 0', borderBottom: '1px solid var(--pb-border)' }

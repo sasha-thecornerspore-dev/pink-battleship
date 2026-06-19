@@ -60,13 +60,45 @@ export function parseCsvHeaders(csv: string): string[] {
   return first ? parseLine(first) : []
 }
 
-/** Best-effort guess of which header maps to date/amount/kind/payer/currency. */
-export function guessCsvMapping(headers: string[]): CsvColumnMap {
+// Per-platform column-name preferences, in priority order. These bias the guess
+// toward each platform's export shape (e.g. OnlyFans/ManyVids list a post-cut
+// "net" column); the generic regex still covers anything not listed.
+const PLATFORM_AMOUNT: Record<string, string[]> = {
+  onlyfans: ['net', 'amount', 'gross', 'earning', 'total'],
+  fansly: ['amount', 'net', 'gross', 'earning'],
+  manyvids: ['net', 'earning', 'price', 'amount', 'sale'],
+  chaturbate: ['token', 'amount', 'earning'],
+}
+const PLATFORM_PAYER: Record<string, string[]> = {
+  onlyfans: ['user', 'fan', 'from', 'name'],
+  fansly: ['user', 'fan', 'from'],
+  manyvids: ['buyer', 'customer', 'user'],
+  chaturbate: ['user', 'tipper', 'fan', 'username'],
+}
+
+function findByPrefs(headers: string[], prefs: string[] | undefined): string {
+  if (!prefs) return ''
+  for (const pref of prefs) {
+    const h = headers.find((x) => x.toLowerCase().includes(pref))
+    if (h) return h
+  }
+  return ''
+}
+
+/**
+ * Best-effort guess of which header maps to date/amount/kind/payer/currency.
+ * Pass a platformId to bias amount/payer toward that platform's export format.
+ */
+export function guessCsvMapping(headers: string[], platformId?: string): CsvColumnMap {
   const find = (patterns: RegExp[]): string => headers.find((h) => patterns.some((p) => p.test(h))) ?? ''
-  const date = find([/date/i, /timestamp/i, /\btime\b/i, /when/i])
-  const amount = find([/amount/i, /gross/i, /\btotal\b/i, /earning/i, /revenue/i, /price/i, /tokens?/i, /value/i, /\bnet\b/i])
-  const kind = find([/type/i, /\bkind\b/i, /category/i, /transaction/i])
-  const payer = find([/payer/i, /\bfan\b/i, /user/i, /buyer/i, /customer/i, /tipper/i, /\bfrom\b/i])
+  const date = find([/date/i, /timestamp/i, /\btime\b/i, /when/i, /created/i])
+  const amount =
+    findByPrefs(headers, platformId ? PLATFORM_AMOUNT[platformId] : undefined) ||
+    find([/amount/i, /gross/i, /\btotal\b/i, /earning/i, /revenue/i, /price/i, /tokens?/i, /value/i, /\bnet\b/i])
+  const kind = find([/type/i, /\bkind\b/i, /category/i, /transaction/i, /description/i])
+  const payer =
+    findByPrefs(headers, platformId ? PLATFORM_PAYER[platformId] : undefined) ||
+    find([/payer/i, /\bfan\b/i, /user/i, /buyer/i, /customer/i, /tipper/i, /\bfrom\b/i])
   const currency = find([/currency/i, /\bcurr\b/i])
   return { date, amount, kind: kind || undefined, payer: payer || undefined, currency: currency || undefined }
 }

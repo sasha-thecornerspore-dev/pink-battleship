@@ -19,6 +19,19 @@ describe('guessCsvMapping', () => {
     expect(m.date).toBe('')
     expect(m.amount).toBe('')
   })
+
+  it('uses platform hints to prefer the right amount column', () => {
+    const headers = ['Date', 'Gross', 'Net', 'Fan']
+    // OnlyFans/ManyVids report a post-cut "Net" — prefer it over Gross.
+    expect(guessCsvMapping(headers, 'onlyfans').amount).toBe('Net')
+    // Generic (no platform) takes the first amount-ish match (Gross).
+    expect(guessCsvMapping(headers).amount).toBe('Gross')
+  })
+
+  it('uses platform hints for the payer column', () => {
+    const m = guessCsvMapping(['Date', 'Amount', 'Buyer', 'User'], 'manyvids')
+    expect(m.payer).toBe('Buyer')
+  })
 })
 
 describe('parseCsvTransactions', () => {
