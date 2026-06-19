@@ -1,4 +1,4 @@
-import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, FanDetail, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from './models'
+import type { Asset, AssistantConfigResult, CheckoutIntent, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, FanDetail, Gallery, ObsStatus, PaidConfig, PnlSummary, RateRule, Sale, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord, VampStats } from './models'
 
 export type VaultStatus = 'uninitialized' | 'locked' | 'unlocked'
 
@@ -110,6 +110,16 @@ export interface PbApiContract {
     export(password: string): Promise<string | null>
     restore(password: string): Promise<{ ok: boolean; error?: string; transactions?: number; connectors?: number }>
   }
+  checkout: {
+    listPaid(): Promise<Record<string, PaidConfig>>
+    setPaid(galleryId: string, config: PaidConfig | null): Promise<void>
+    listSales(): Promise<Sale[]>
+    listIntents(): Promise<CheckoutIntent[]>
+    vamp(): Promise<VampStats>
+    simulateSale(galleryId: string): Promise<{ ok: boolean; reason?: string }>
+    dispute(saleId: string, type: 'refund' | 'chargeback'): Promise<{ ok: boolean; reason?: string }>
+    exportEvidence(saleId: string): Promise<string | null>
+  }
 }
 
 export const IPC = {
@@ -164,4 +174,12 @@ export const IPC = {
   systemOpenExternal: 'system:open-external',
   backupExport: 'backup:export',
   backupRestore: 'backup:restore',
+  checkoutListPaid: 'checkout:list-paid',
+  checkoutSetPaid: 'checkout:set-paid',
+  checkoutListSales: 'checkout:list-sales',
+  checkoutListIntents: 'checkout:list-intents',
+  checkoutVamp: 'checkout:vamp',
+  checkoutSimulateSale: 'checkout:simulate-sale',
+  checkoutDispute: 'checkout:dispute',
+  checkoutExportEvidence: 'checkout:export-evidence',
 } as const

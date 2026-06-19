@@ -87,6 +87,16 @@ const api: PbApiContract = {
     export: (password) => ipcRenderer.invoke(IPC.backupExport, password),
     restore: (password) => ipcRenderer.invoke(IPC.backupRestore, password),
   },
+  checkout: {
+    listPaid: () => ipcRenderer.invoke(IPC.checkoutListPaid),
+    setPaid: (galleryId, config) => ipcRenderer.invoke(IPC.checkoutSetPaid, galleryId, config),
+    listSales: () => ipcRenderer.invoke(IPC.checkoutListSales),
+    listIntents: () => ipcRenderer.invoke(IPC.checkoutListIntents),
+    vamp: () => ipcRenderer.invoke(IPC.checkoutVamp),
+    simulateSale: (galleryId) => ipcRenderer.invoke(IPC.checkoutSimulateSale, galleryId),
+    dispute: (saleId, type) => ipcRenderer.invoke(IPC.checkoutDispute, saleId, type),
+    exportEvidence: (saleId) => ipcRenderer.invoke(IPC.checkoutExportEvidence, saleId),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

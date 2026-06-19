@@ -55,7 +55,7 @@ await page.getByText(/net earnings this period/i).waitFor({ timeout: 10000 })
 await page.screenshot({ path: join(outDir, 'dashboard.png') })
 
 await page.getByRole('button', { name: 'Take a tour' }).click()
-await page.getByText('1 / 13').waitFor({ timeout: 5000 })
+await page.getByText('1 / 14').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'tour.png') })
 await page.getByRole('button', { name: 'Skip' }).click()
 
@@ -74,6 +74,10 @@ await page.getByText(/Master gallery/i).waitFor({ timeout: 5000 })
 await page.getByRole('button', { name: /Import files/ }).click()
 await page.getByText('imported_clip.mp4').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'galleries.png') })
+
+await page.getByRole('button', { name: 'Sales' }).click()
+await page.getByText('Publish a gallery for sale').waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'sales.png') })
 
 await page.getByRole('button', { name: 'Assistant' }).click()
 await page.getByPlaceholder(/what's this about/i).fill('new blue lingerie set, Friday drop')

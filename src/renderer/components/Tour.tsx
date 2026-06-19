@@ -6,6 +6,7 @@ const STEPS: { route: Route; title: string; body: string }[] = [
   { route: 'stats', title: 'Stats', body: 'Net earnings over time with a moving average, and a day×hour heatmap showing your best hours — by real dollars, not viewer guesses.' },
   { route: 'fans', title: 'Fans', body: 'Every spender ranked by net, with whale / VIP tiers, private notes, and a win-back nudge for fans who have gone quiet.' },
   { route: 'galleries', title: 'Galleries', body: 'A master library plus sellable sets. Tag assets, track where each is posted, and flip on Safe mode to hide NSFW tiles.' },
+  { route: 'sales', title: 'Sales', body: 'Sell a gallery directly. The desktop re-verifies the processor’s signed payment before unlocking, and watermarks each sale for leak traceability. Runs in a local sandbox until you connect a real processor.' },
   { route: 'assistant', title: 'Assistant', body: 'Draft captions and fan replies. A free local model is the baseline; the safety router keeps explicit work off SFW providers and fan PII on-device.' },
   { route: 'calendar', title: 'Calendar', body: 'Plan posts, mass-DMs, go-lives and promos across platforms, with status tracking for each.' },
   { route: 'live', title: 'Live (OBS)', body: 'See your OBS stream at a glance — live status, duration, scenes — read over its local WebSocket, so it never leaves your machine.' },

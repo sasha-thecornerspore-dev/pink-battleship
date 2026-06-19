@@ -7,6 +7,7 @@ import Dashboard from './screens/Dashboard'
 import Stats from './screens/Stats'
 import Fans from './screens/Fans'
 import Galleries from './screens/Galleries'
+import Sales from './screens/Sales'
 import Assistant from './screens/Assistant'
 import Calendar from './screens/Calendar'
 import Live from './screens/Live'
@@ -41,6 +42,7 @@ export default function Shell() {
         {route === 'stats' && <Stats />}
         {route === 'fans' && <Fans />}
         {route === 'galleries' && <Galleries />}
+        {route === 'sales' && <Sales />}
         {route === 'assistant' && <Assistant />}
         {route === 'calendar' && <Calendar />}
         {route === 'live' && <Live />}

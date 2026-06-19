@@ -13,7 +13,9 @@ import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/c
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
-import type { SiteConfig } from '@shared/models'
+import { CheckoutService } from '@core/checkout/checkoutService'
+import { MockProcessor } from '@core/checkout/mockProcessor'
+import type { PaidConfig, SiteConfig } from '@shared/models'
 
 // In-browser demo backend: the SAME core logic the Electron app uses, running
 // over an in-memory database. Active only when window.pb is absent (i.e. opened
@@ -84,6 +86,11 @@ function seed(): void {
     { filename: 'ppv_may_a.jpg', mediaKind: 'image', nsfw: true, tags: ['ppv'], postedTo: [], dims: '1920×1080' },
     { filename: 'ppv_may_b.mp4', mediaKind: 'video', nsfw: true, tags: ['ppv'], postedTo: [], dims: '2:30' },
   ])
+  const checkout = co()
+  checkout.setPaid(ppv.id, { priceMinor: 2500, currency: 'USD', processor: 'mock' })
+  checkout.simulateSale(ppv.id)
+  checkout.simulateSale(ppv.id)
+  checkout.simulateSale(ppv.id)
   const sched = new ScheduleService(db)
   sched.create({ platformId: 'chaturbate', kind: 'go_live', title: 'Evening cam show', caption: '', scheduledAt: '2026-06-15T20:00:00Z' })
   sched.create({ platformId: 'onlyfans', kind: 'post', title: 'Blue lingerie set drop', caption: 'New drop 🩷 link in bio', scheduledAt: '2026-06-16T18:00:00Z' })
@@ -108,6 +115,10 @@ function seed(): void {
   }
   db.setSetting('website:config', JSON.stringify(site))
   db.setSetting('ai.groqKey', 'demo-key') // shows a connected provider + its model picker in Settings
+}
+
+function co(): CheckoutService {
+  return new CheckoutService(db, new MockProcessor())
 }
 
 function demoObs(): ObsStatus {
@@ -351,6 +362,35 @@ export function createDemoBackend(): PbApiContract {
       openExternal: (url) => {
         window.open(url, '_blank', 'noopener,noreferrer')
         return Promise.resolve()
+      },
+    },
+    checkout: {
+      listPaid: () => Promise.resolve(co().listPaid()),
+      setPaid: (galleryId, config: PaidConfig | null) => {
+        co().setPaid(galleryId, config)
+        return Promise.resolve()
+      },
+      listSales: () => Promise.resolve(co().listSales()),
+      listIntents: () => Promise.resolve(co().listIntents()),
+      vamp: () => Promise.resolve(co().vampStats()),
+      simulateSale: (galleryId) => {
+        const r = co().simulateSale(galleryId)
+        return Promise.resolve({ ok: r.ok, reason: r.reason })
+      },
+      dispute: (saleId, type) => {
+        const r = co().disputeSale(saleId, type)
+        return Promise.resolve({ ok: r.ok, reason: r.reason })
+      },
+      exportEvidence: (saleId) => {
+        const kit = co().evidenceKit(saleId)
+        if (!kit) return Promise.resolve(null)
+        const blob = new Blob([JSON.stringify(kit, null, 2)], { type: 'application/json' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `evidence-${kit.sale.processorTxnId}.json`
+        a.click()
+        URL.revokeObjectURL(a.href)
+        return Promise.resolve('(downloaded)')
       },
     },
     backup: {

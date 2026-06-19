@@ -24,6 +24,8 @@ import { fetchObsStatus } from '@core/obs/obsClient'
 import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
 import { buildImportDrafts, isSupportedMedia, type ProbedFile } from '@core/gallery/mediaImport'
 import { sealBackup, openBackup, type BackupFile } from '@core/backup/backupFile'
+import { CheckoutService } from '@core/checkout/checkoutService'
+import { MockProcessor } from '@core/checkout/mockProcessor'
 import { createNodeMediaProbe } from './mediaProbe'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
@@ -32,7 +34,7 @@ import { ChaturbateDriver, CHATURBATE_HOST, type ChaturbateEvent } from '@core/c
 import chaturbateFixture from '@core/connectors/fixtures/chaturbate-events.json'
 import { parseCsvTransactions } from '@core/connectors/manualCsv'
 import { seedDefaults } from './seed'
-import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
+import type { Asset, AssistantConfigResult, ComplianceOverview, ConnectorInfo, DmcaInput, DraftRequest, DraftResult, EgressEntry, Fan, Gallery, ObsStatus, PaidConfig, PnlSummary, RateRule, ScheduledItem, ScheduleStatus, SiteConfig, StatsReport, ThemeId, ThemeMode, TwoFiveSevenRecord } from '@shared/models'
 import type { ImportCsvRequest, ImportCsvResult, PrivacyReport, ThemePref, VaultStatus } from '@shared/ipc'
 
 const VAULT_SECRET_KEY = 'vault.v1'
@@ -486,6 +488,47 @@ export class AppServices {
     } catch {
       return { ok: false, error: 'Could not open this backup — wrong password, or not a valid Pink Battleship backup.' }
     }
+  }
+
+  // --- paid galleries & checkout (sandbox; live processor adapters plug in later) ---
+
+  private checkout(): CheckoutService {
+    return new CheckoutService(this.requireDb(), new MockProcessor())
+  }
+  listPaid() {
+    return this.checkout().listPaid()
+  }
+  setPaid(galleryId: string, config: PaidConfig | null): void {
+    this.checkout().setPaid(galleryId, config)
+  }
+  listSales() {
+    return this.checkout().listSales()
+  }
+  listIntents() {
+    return this.checkout().listIntents()
+  }
+  checkoutVamp() {
+    return this.checkout().vampStats()
+  }
+  simulateSale(galleryId: string): { ok: boolean; reason?: string } {
+    const r = this.checkout().simulateSale(galleryId)
+    return { ok: r.ok, reason: r.reason }
+  }
+  disputeSale(saleId: string, type: 'refund' | 'chargeback'): { ok: boolean; reason?: string } {
+    const r = this.checkout().disputeSale(saleId, type)
+    return { ok: r.ok, reason: r.reason }
+  }
+  async exportEvidence(saleId: string): Promise<string | null> {
+    const kit = this.checkout().evidenceKit(saleId)
+    if (!kit) return null
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export chargeback evidence kit',
+      defaultPath: `evidence-${kit.sale.processorTxnId}.json`,
+      filters: [{ name: 'Evidence kit (JSON)', extensions: ['json'] }],
+    })
+    if (canceled || !filePath) return null
+    writeFileSync(filePath, JSON.stringify(kit, null, 2), 'utf8')
+    return filePath
   }
 
   // --- rates ---

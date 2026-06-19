@@ -7,6 +7,7 @@ const NAV: { id: Route; label: string }[] = [
   { id: 'stats', label: 'Stats' },
   { id: 'fans', label: 'Fans' },
   { id: 'galleries', label: 'Galleries' },
+  { id: 'sales', label: 'Sales' },
   { id: 'assistant', label: 'Assistant' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'live', label: 'Live (OBS)' },

@@ -25,6 +25,8 @@ All domain logic is plain Node, unit-tested without Electron. The Electron app a
 | `assistant/` | safety screen (hard blocks + PII + creator boundaries) + provider router + real generation (local Ollama + hosted BYO-key adapters: Gemini/Groq/Cerebras/OpenRouter/Claude/OpenAI/Venice/Atlas) with template fallback |
 | `obs/` | obs-websocket v5 client (auth + one-shot status poll) for local OBS Studio control — on-device, never via the gateway |
 | `website/` | pure link-in-bio site generator (escaped HTML + 18+ age gate, self-contained, no external requests) |
+| `checkout/` | paid-gallery checkout: `Processor` port + sandbox `MockProcessor`; desktop-authoritative verify → reconcile → single-use → unlock; per-buyer watermark token + chargeback evidence kit + VAMP monitor (live processor adapters plug in later) |
+| `backup/` | password-encrypted vault snapshot (AES-256-GCM under scrypt) — export/restore |
 | `schedule/` | content-calendar items |
 | `compliance/` | 2257 records + custodian statement + tax set-aside + DMCA generator |
 

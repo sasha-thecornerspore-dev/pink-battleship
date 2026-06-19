@@ -266,6 +266,54 @@ export interface SiteConfig {
   ageGate: boolean
 }
 
+// --- Paid galleries & checkout (local build-out; live processor adapters plug in later) ---
+
+export type ProcessorId = 'mock' | 'ccbill' | 'segpay' | 'verotel' | 'btcpay' | 'nowpayments'
+export type CheckoutStatus = 'pending' | 'paid' | 'consumed' | 'refunded' | 'chargeback'
+export type SaleStatus = 'paid' | 'refunded' | 'chargeback'
+
+/** A gallery published for sale. priceMinor is in cents (or the currency's minor unit). */
+export interface PaidConfig {
+  priceMinor: number
+  currency: string
+  processor: ProcessorId
+}
+
+export interface CheckoutIntent {
+  intentId: string // local PK — never leaves the machine
+  intentRef: string // unguessable; the only id exposed to a processor
+  galleryId: string
+  priceMinor: number
+  currency: string
+  processor: ProcessorId
+  status: CheckoutStatus
+  createdAt: string
+  buyerTokenHash?: string
+}
+
+/** A verified, reconciled, unlocked sale + the evidence to defend it. */
+export interface Sale {
+  saleId: string
+  intentRef: string
+  galleryId: string
+  processor: ProcessorId
+  processorTxnId: string
+  grossAmountMinor: number
+  currency: string
+  buyerTokenHash: string
+  paidAt: string
+  recordedAt: string
+  /** Per-buyer watermark token — ties a leaked file back to this buyer (traceability, not DRM). */
+  watermarkId: string
+  status: SaleStatus
+}
+
+export interface VampStats {
+  sales: number
+  disputes: number
+  ratioPct: number
+}
+
 // --- OBS (local studio control via obs-websocket v5, 127.0.0.1) ---
 
 export interface ObsStatus {

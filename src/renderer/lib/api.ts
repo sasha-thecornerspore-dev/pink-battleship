@@ -28,6 +28,7 @@ export const qk = {
   schedule: ['schedule'] as const,
   compliance: ['compliance'] as const,
   obs: ['obs'] as const,
+  checkout: ['checkout'] as const,
 }
 
 export const usePnl = () => useQuery({ queryKey: qk.pnl, queryFn: () => pb.pnl.summary() })

@@ -74,4 +74,13 @@ export function registerIpc(services: AppServices): void {
 
   ipcMain.handle(IPC.backupExport, (_e, password: string) => services.exportBackup(password))
   ipcMain.handle(IPC.backupRestore, (_e, password: string) => services.restoreBackup(password))
+
+  ipcMain.handle(IPC.checkoutListPaid, () => services.listPaid())
+  ipcMain.handle(IPC.checkoutSetPaid, (_e, galleryId: string, config) => services.setPaid(galleryId, config))
+  ipcMain.handle(IPC.checkoutListSales, () => services.listSales())
+  ipcMain.handle(IPC.checkoutListIntents, () => services.listIntents())
+  ipcMain.handle(IPC.checkoutVamp, () => services.checkoutVamp())
+  ipcMain.handle(IPC.checkoutSimulateSale, (_e, galleryId: string) => services.simulateSale(galleryId))
+  ipcMain.handle(IPC.checkoutDispute, (_e, saleId: string, type) => services.disputeSale(saleId, type))
+  ipcMain.handle(IPC.checkoutExportEvidence, (_e, saleId: string) => services.exportEvidence(saleId))
 }
