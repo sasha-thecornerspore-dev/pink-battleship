@@ -123,6 +123,8 @@ export default function Settings() {
         )}
       </Section>
 
+      <BackupSection />
+
       <Section title="Security">
         <button className="pb-btn" onClick={lock} style={{ borderColor: 'var(--pb-danger)', color: 'var(--pb-danger)' }}>
           Panic-lock vault now
@@ -132,6 +134,66 @@ export default function Settings() {
         </p>
       </Section>
     </div>
+  )
+}
+
+function BackupSection() {
+  const qc = useQueryClient()
+  const [exportPw, setExportPw] = useState('')
+  const [restorePw, setRestorePw] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const doExport = async () => {
+    setBusy(true)
+    setMsg(null)
+    try {
+      const path = await pb.backup.export(exportPw)
+      if (path) {
+        setExportPw('')
+        setMsg({ ok: true, text: `Backup saved to ${path}` })
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+  const doRestore = async () => {
+    if (!window.confirm('Restore REPLACES everything in this vault with the backup’s contents. This can’t be undone. Continue?')) return
+    setBusy(true)
+    setMsg(null)
+    try {
+      const r = await pb.backup.restore(restorePw)
+      if (r.ok) {
+        setRestorePw('')
+        setMsg({ ok: true, text: `Restored ${r.transactions} transactions and ${r.connectors} connectors.` })
+        await qc.invalidateQueries()
+      } else if (r.error) {
+        setMsg({ ok: false, text: r.error })
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Section
+      title="Backup & restore"
+      subtitle="A single encrypted file you can keep off-machine or carry to a new computer. Choose a password (not your vault passphrase) — if you lose it the backup can’t be opened. Since nothing is in the cloud, this is your safety net."
+    >
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+        <input className="pb-input" type="password" placeholder="Backup password (min 8)" value={exportPw} onChange={(e) => setExportPw(e.target.value)} style={{ flex: 1 }} />
+        <button className="pb-btn pb-btn-primary" onClick={doExport} disabled={busy || exportPw.trim().length < 8} style={{ whiteSpace: 'nowrap' }}>
+          Export encrypted backup…
+        </button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <input className="pb-input" type="password" placeholder="Backup password" value={restorePw} onChange={(e) => setRestorePw(e.target.value)} style={{ flex: 1 }} />
+        <button className="pb-btn" onClick={doRestore} disabled={busy || !restorePw} style={{ whiteSpace: 'nowrap', borderColor: 'var(--pb-danger)', color: 'var(--pb-danger)' }}>
+          Restore from backup…
+        </button>
+      </div>
+      {msg && <div style={{ marginTop: 10, fontSize: 12, color: msg.ok ? 'var(--pb-sage-deep)' : 'var(--pb-danger)', wordBreak: 'break-all' }}>{msg.text}</div>}
+    </Section>
   )
 }
 

@@ -6,6 +6,14 @@ export interface TransactionFilter {
   platformId?: PlatformId
 }
 
+/** A complete dump of the vault's data (everything except the ephemeral egress log). */
+export interface DbSnapshot {
+  transactions: Transaction[]
+  connectors: ConnectorInfo[]
+  rateRules: RateRule[]
+  settings: Record<string, string>
+}
+
 /**
  * Narrow persistence port. The app wires the SQLCipher-backed adapter; tests
  * (and a demo mode) use InMemoryDatabase. Keeping this small keeps the core
@@ -23,5 +31,9 @@ export interface Database {
   setSetting(key: string, value: string): void
   appendEgress(entry: EgressEntry): void
   listEgress(limit?: number): EgressEntry[]
+  /** Dump all data for an encrypted backup. */
+  exportSnapshot(): DbSnapshot
+  /** Replace all data with a snapshot (restore). Atomic. */
+  importSnapshot(snapshot: DbSnapshot): void
   close(): void
 }

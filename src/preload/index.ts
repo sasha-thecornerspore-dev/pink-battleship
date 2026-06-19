@@ -82,6 +82,10 @@ const api: PbApiContract = {
   system: {
     openExternal: (url) => ipcRenderer.invoke(IPC.systemOpenExternal, url),
   },
+  backup: {
+    export: (password) => ipcRenderer.invoke(IPC.backupExport, password),
+    restore: (password) => ipcRenderer.invoke(IPC.backupRestore, password),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

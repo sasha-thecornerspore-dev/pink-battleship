@@ -1,4 +1,4 @@
-import type { Database, TransactionFilter } from './database'
+import type { Database, DbSnapshot, TransactionFilter } from './database'
 import type { ConnectorInfo, EgressEntry, PlatformId, RateRule, Transaction } from '@shared/models'
 
 export class InMemoryDatabase implements Database {
@@ -61,6 +61,23 @@ export class InMemoryDatabase implements Database {
 
   listEgress(limit = 200): EgressEntry[] {
     return this.egress.slice(-limit).reverse()
+  }
+
+  exportSnapshot(): DbSnapshot {
+    return {
+      transactions: [...this.txs],
+      connectors: [...this.connectors.values()],
+      rateRules: [...this.rules],
+      settings: Object.fromEntries(this.settings),
+    }
+  }
+
+  importSnapshot(s: DbSnapshot): void {
+    this.txs = [...s.transactions]
+    this.rules = [...s.rateRules]
+    this.connectors = new Map(s.connectors.map((c) => [c.id, c]))
+    this.settings = new Map(Object.entries(s.settings))
+    // egress log is ephemeral — not restored
   }
 
   close(): void {

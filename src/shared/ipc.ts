@@ -105,6 +105,10 @@ export interface PbApiContract {
   system: {
     openExternal(url: string): Promise<void>
   }
+  backup: {
+    export(password: string): Promise<string | null>
+    restore(password: string): Promise<{ ok: boolean; error?: string; transactions?: number; connectors?: number }>
+  }
 }
 
 export const IPC = {
@@ -156,4 +160,6 @@ export const IPC = {
   websiteSave: 'website:save',
   websiteExport: 'website:export',
   systemOpenExternal: 'system:open-external',
+  backupExport: 'backup:export',
+  backupRestore: 'backup:restore',
 } as const

@@ -352,5 +352,19 @@ export function createDemoBackend(): PbApiContract {
         return Promise.resolve()
       },
     },
+    backup: {
+      // The desktop app encrypts with node:crypto + a native save dialog; the
+      // browser demo just downloads the snapshot so the flow is visible.
+      export: () => {
+        const blob = new Blob([JSON.stringify(db.exportSnapshot(), null, 2)], { type: 'application/json' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = 'pinkbattleship-demo-snapshot.json'
+        a.click()
+        URL.revokeObjectURL(a.href)
+        return Promise.resolve('(downloaded demo snapshot)')
+      },
+      restore: () => Promise.resolve({ ok: false, error: 'Restore runs in the desktop app.' }),
+    },
   }
 }

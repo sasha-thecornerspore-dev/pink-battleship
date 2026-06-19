@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3-multiple-ciphers'
-import type { Database as DbPort, TransactionFilter } from './database'
+import type { Database as DbPort, DbSnapshot, TransactionFilter } from './database'
 import type { ConnectorInfo, EgressEntry, PlatformId, RateRule, Transaction } from '@shared/models'
 import { SCHEMA_V1 } from './migrations'
 
@@ -201,6 +201,31 @@ export class SqlcipherDatabase implements DbPort {
       .prepare('SELECT ts, connector_id, host, purpose FROM egress_log ORDER BY id DESC LIMIT ?')
       .all(limit) as EgressRow[]
     return rows.map((r) => ({ ts: r.ts, connectorId: r.connector_id, host: r.host, purpose: r.purpose }))
+  }
+
+  exportSnapshot(): DbSnapshot {
+    const settingsRows = this.db.prepare('SELECT key, value FROM settings').all() as { key: string; value: string }[]
+    return {
+      transactions: this.queryTransactions(),
+      connectors: this.listConnectors(),
+      rateRules: this.listRateRules(),
+      settings: Object.fromEntries(settingsRows.map((r) => [r.key, r.value])),
+    }
+  }
+
+  importSnapshot(s: DbSnapshot): void {
+    this.db.exec('BEGIN')
+    try {
+      this.db.exec('DELETE FROM transactions; DELETE FROM connectors; DELETE FROM rate_rules; DELETE FROM settings;')
+      this.insertTransactions(s.transactions)
+      for (const c of s.connectors) this.upsertConnector(c)
+      for (const r of s.rateRules) this.upsertRateRule(r)
+      for (const [k, v] of Object.entries(s.settings)) this.setSetting(k, v)
+      this.db.exec('COMMIT')
+    } catch (e) {
+      this.db.exec('ROLLBACK')
+      throw e
+    }
   }
 
   close(): void {

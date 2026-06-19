@@ -1,5 +1,5 @@
 import { app, dialog } from 'electron'
-import { writeFileSync, mkdirSync, statSync } from 'node:fs'
+import { writeFileSync, readFileSync, mkdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Database } from '@core/db/database'
 import { SqlcipherDatabase } from '@core/db/sqlcipherDatabase'
@@ -23,6 +23,7 @@ import { PROVIDER_HTTP, composePrompt, providerModelDefaults } from '@core/assis
 import { fetchObsStatus } from '@core/obs/obsClient'
 import { buildSite, DEFAULT_SITE } from '@core/website/siteBuilder'
 import { buildImportDrafts, isSupportedMedia, type ProbedFile } from '@core/gallery/mediaImport'
+import { sealBackup, openBackup, type BackupFile } from '@core/backup/backupFile'
 import { createNodeMediaProbe } from './mediaProbe'
 import { ScheduleService, type NewScheduledItem } from '@core/schedule/scheduleService'
 import { ComplianceService, type NewRecord, type CustodianInfo } from '@core/compliance/complianceService'
@@ -450,6 +451,38 @@ export class AppServices {
     if (canceled || !filePath) return null
     writeFileSync(filePath, html, 'utf8')
     return filePath
+  }
+
+  // --- encrypted backup & restore ---
+
+  async exportBackup(password: string): Promise<string | null> {
+    const now = new Date().toISOString()
+    const file = sealBackup(this.requireDb().exportSnapshot(), password, now)
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export encrypted backup',
+      defaultPath: `pinkbattleship-backup-${now.slice(0, 10)}.pbbak`,
+      filters: [{ name: 'Pink Battleship backup', extensions: ['pbbak'] }],
+    })
+    if (canceled || !filePath) return null
+    writeFileSync(filePath, JSON.stringify(file), 'utf8')
+    return filePath
+  }
+
+  async restoreBackup(password: string): Promise<{ ok: boolean; error?: string; transactions?: number; connectors?: number }> {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Restore from backup (replaces current data)',
+      properties: ['openFile'],
+      filters: [{ name: 'Pink Battleship backup', extensions: ['pbbak', 'json'] }],
+    })
+    if (canceled || filePaths.length === 0) return { ok: false }
+    try {
+      const file = JSON.parse(readFileSync(filePaths[0], 'utf8')) as BackupFile
+      const snapshot = openBackup(file, password)
+      this.requireDb().importSnapshot(snapshot)
+      return { ok: true, transactions: snapshot.transactions.length, connectors: snapshot.connectors.length }
+    } catch {
+      return { ok: false, error: 'Could not open this backup — wrong password, or not a valid Pink Battleship backup.' }
+    }
   }
 
   // --- rates ---

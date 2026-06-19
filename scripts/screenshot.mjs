@@ -115,6 +115,9 @@ await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
 await page.getByText('Groq').scrollIntoViewIfNeeded()
 await page.screenshot({ path: join(outDir, 'settings-ai.png') })
 
+await page.getByText('Backup & restore').scrollIntoViewIfNeeded()
+await page.screenshot({ path: join(outDir, 'settings-backup.png') })
+
 await page.getByRole('button', { name: 'Help' }).click()
 await page.getByText('Where do I get my Chaturbate Events API URL?').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'help.png') })

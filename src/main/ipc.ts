@@ -70,4 +70,7 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.systemOpenExternal, (_e, url: string) => {
     if (isSafeExternalUrl(url)) return shell.openExternal(url)
   })
+
+  ipcMain.handle(IPC.backupExport, (_e, password: string) => services.exportBackup(password))
+  ipcMain.handle(IPC.backupRestore, (_e, password: string) => services.restoreBackup(password))
 }
