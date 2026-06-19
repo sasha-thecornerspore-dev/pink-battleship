@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConnectors, pb, qk } from '../lib/api'
 import RiskBadge from '../components/RiskBadge'
+import ExternalLink from '../components/ExternalLink'
+import { LINKS } from '../lib/links'
 import { useUi } from '../store/ui'
 import type { ConnectorInfo } from '@shared/models'
 
@@ -104,8 +106,11 @@ export default function Connectors() {
         <div className="pb-card" style={{ padding: '14px 16px', marginBottom: 14 }}>
           <div style={{ fontSize: 14, marginBottom: 4 }}>Chaturbate — live</div>
           <div style={{ fontSize: 12, color: 'var(--pb-text-muted)', marginBottom: 8, lineHeight: 1.5 }}>
-            Paste your Events API URL (Chaturbate → Account → Events API). It's stored in your OS keychain, and only this
-            one host is ever contacted.
+            Paste your Events API URL (Chaturbate → Apps &amp; Bots → Events API). It's stored in your OS keychain, and only
+            this one host is ever contacted.{' '}
+            <ExternalLink href={LINKS.chaturbateApps} style={{ fontSize: 12 }}>
+              Where do I find this? ↗
+            </ExternalLink>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input

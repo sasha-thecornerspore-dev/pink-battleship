@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useObs, pb, qk } from '../lib/api'
+import ExternalLink from '../components/ExternalLink'
+import { LINKS } from '../lib/links'
 
 function duration(seconds: number): string {
   const h = Math.floor(seconds / 3600)
@@ -146,7 +148,10 @@ export default function Live() {
             <div style={{ fontSize: 14, marginBottom: 4 }}>Connect to OBS</div>
             <div style={{ fontSize: 12, color: 'var(--pb-text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
               In OBS: <b>Tools → WebSocket Server Settings → Enable</b>. Copy the port (default 4455) and, if you set one, the
-              password. The password is stored in your OS keychain.
+              password. The password is stored in your OS keychain.{' '}
+              <ExternalLink href={LINKS.obsDownload} style={{ fontSize: 12 }}>Get OBS ↗</ExternalLink>
+              {' · '}
+              <ExternalLink href={LINKS.obsWebsocket} style={{ fontSize: 12 }}>WebSocket docs ↗</ExternalLink>
             </div>
             <div style={{ display: 'grid', gap: 8, maxWidth: 420 }}>
               <input className="pb-input" placeholder="ws://127.0.0.1:4455" value={address} onChange={(e) => setAddress(e.target.value)} />

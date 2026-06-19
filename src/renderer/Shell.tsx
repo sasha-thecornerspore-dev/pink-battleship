@@ -15,6 +15,7 @@ import Connectors from './screens/Connectors'
 import Import from './screens/Import'
 import Settings from './screens/Settings'
 import Compliance from './screens/Compliance'
+import Help from './screens/Help'
 
 export default function Shell() {
   const route = useUi((s) => s.route)
@@ -48,6 +49,7 @@ export default function Shell() {
         {route === 'import' && <Import />}
         {route === 'compliance' && <Compliance />}
         {route === 'settings' && <Settings />}
+        {route === 'help' && <Help />}
       </main>
       {tourOpen && <Tour />}
     </div>

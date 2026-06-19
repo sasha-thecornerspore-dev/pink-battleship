@@ -15,6 +15,7 @@ const NAV: { id: Route; label: string }[] = [
   { id: 'import', label: 'Import' },
   { id: 'compliance', label: 'Compliance' },
   { id: 'settings', label: 'Settings' },
+  { id: 'help', label: 'Help' },
 ]
 
 export default function Sidebar() {

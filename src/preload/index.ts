@@ -79,6 +79,9 @@ const api: PbApiContract = {
     save: (config) => ipcRenderer.invoke(IPC.websiteSave, config),
     export: (config) => ipcRenderer.invoke(IPC.websiteExport, config),
   },
+  system: {
+    openExternal: (url) => ipcRenderer.invoke(IPC.systemOpenExternal, url),
+  },
 }
 
 contextBridge.exposeInMainWorld('pb', api)

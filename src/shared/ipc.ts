@@ -102,6 +102,9 @@ export interface PbApiContract {
     save(config: SiteConfig): Promise<void>
     export(config: SiteConfig): Promise<string | null>
   }
+  system: {
+    openExternal(url: string): Promise<void>
+  }
 }
 
 export const IPC = {
@@ -152,4 +155,5 @@ export const IPC = {
   websiteGetConfig: 'website:get-config',
   websiteSave: 'website:save',
   websiteExport: 'website:export',
+  systemOpenExternal: 'system:open-external',
 } as const

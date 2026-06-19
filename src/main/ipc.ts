@@ -1,6 +1,7 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell } from 'electron'
 import { IPC, type ImportCsvRequest, type ThemePref } from '@shared/ipc'
 import type { RateRule } from '@shared/models'
+import { isSafeExternalUrl } from '@core/system/externalLink'
 import type { AppServices } from './services'
 
 export function registerIpc(services: AppServices): void {
@@ -65,4 +66,8 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.websiteGetConfig, () => services.websiteConfig())
   ipcMain.handle(IPC.websiteSave, (_e, config) => services.saveWebsite(config))
   ipcMain.handle(IPC.websiteExport, (_e, config) => services.exportWebsite(config))
+
+  ipcMain.handle(IPC.systemOpenExternal, (_e, url: string) => {
+    if (isSafeExternalUrl(url)) return shell.openExternal(url)
+  })
 }

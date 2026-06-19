@@ -55,7 +55,7 @@ await page.getByText(/net earnings this period/i).waitFor({ timeout: 10000 })
 await page.screenshot({ path: join(outDir, 'dashboard.png') })
 
 await page.getByRole('button', { name: 'Take a tour' }).click()
-await page.getByText('1 / 12').waitFor({ timeout: 5000 })
+await page.getByText('1 / 13').waitFor({ timeout: 5000 })
 await page.screenshot({ path: join(outDir, 'tour.png') })
 await page.getByRole('button', { name: 'Skip' }).click()
 
@@ -114,6 +114,10 @@ await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByText('AI providers — free vs paid').waitFor({ timeout: 5000 })
 await page.getByText('Groq').scrollIntoViewIfNeeded()
 await page.screenshot({ path: join(outDir, 'settings-ai.png') })
+
+await page.getByRole('button', { name: 'Help' }).click()
+await page.getByText('Where do I get my Chaturbate Events API URL?').waitFor({ timeout: 5000 })
+await page.screenshot({ path: join(outDir, 'help.png') })
 
 await page.getByRole('button', { name: 'Settings' }).click()
 await page.getByRole('button', { name: 'dark' }).click()

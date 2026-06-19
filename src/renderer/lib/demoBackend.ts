@@ -346,5 +346,11 @@ export function createDemoBackend(): PbApiContract {
         return Promise.resolve('(downloaded)')
       },
     },
+    system: {
+      openExternal: (url) => {
+        window.open(url, '_blank', 'noopener,noreferrer')
+        return Promise.resolve()
+      },
+    },
   }
 }

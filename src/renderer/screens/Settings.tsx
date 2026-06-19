@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRates, usePrivacy, pb, qk } from '../lib/api'
 import { useUi } from '../store/ui'
 import { THEMES } from '../theme/themes'
+import ExternalLink from '../components/ExternalLink'
+import { PROVIDER_KEY_URLS, LINKS } from '../lib/links'
 import type { AssistantProvider, RateRule, ThemeId, ThemeMode } from '@shared/models'
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -194,8 +196,8 @@ function AiKeys() {
             </div>
           ) : (
             <div style={{ fontSize: 11, color: 'var(--pb-text-muted)', marginTop: 4, paddingLeft: 18 }}>
-              Install <b>Ollama</b> and pull an uncensored model (e.g. <code>ollama pull dolphin-llama3:8b</code>) — it then
-              appears here. ~12 GB VRAM handles 8–12B.
+              <ExternalLink href={LINKS.ollama}>Install Ollama</ExternalLink> and pull an uncensored model (e.g.{' '}
+              <code>ollama pull dolphin-llama3:8b</code>) — it then appears here. ~12 GB VRAM handles 8–12B.
             </div>
           )}
         </div>
@@ -272,7 +274,7 @@ function KeyRow({
   return (
     <div style={{ marginBottom: 10 }}>
       <ProviderHead p={p} dot={connected} right={connected ? 'connected' : ''} />
-      <div style={{ display: 'flex', gap: 8, paddingLeft: 18, marginTop: 4 }}>
+      <div style={{ display: 'flex', gap: 8, paddingLeft: 18, marginTop: 4, alignItems: 'center' }}>
         {connected ? (
           <button className="pb-btn" style={{ fontSize: 11 }} onClick={() => onSave(p.id, '')}>
             Remove key
@@ -291,6 +293,11 @@ function KeyRow({
             >
               Save
             </button>
+            {PROVIDER_KEY_URLS[p.id] && (
+              <ExternalLink href={PROVIDER_KEY_URLS[p.id]} style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+                Get a key ↗
+              </ExternalLink>
+            )}
           </>
         )}
       </div>

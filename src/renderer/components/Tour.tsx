@@ -14,6 +14,7 @@ const STEPS: { route: Route; title: string; body: string }[] = [
   { route: 'import', title: 'Import', body: 'Drop a CSV, map the columns once, and it flows straight into your P&L. Nothing is uploaded anywhere.' },
   { route: 'compliance', title: 'Compliance', body: 'A 2257 records vault, custodian statement, tax set-aside, a DMCA generator, and a legal assistant — all on-device.' },
   { route: 'settings', title: 'Settings', body: 'Themes, rate estimates, AI providers, and your panic-lock. Everything stays encrypted on this device — no telemetry, ever.' },
+  { route: 'help', title: 'Help', body: 'Step-by-step setup guides and direct links to everything you need — your Chaturbate Events API URL, AI keys, Ollama, OBS. Searchable, any time.' },
 ]
 
 export default function Tour() {
