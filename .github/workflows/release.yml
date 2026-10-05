@@ -137,8 +137,11 @@ jobs:
       - name: Assemble release files
         run: |
           mkdir upload
-          cp dist/windows/* dist/mac-arm64/* dist/mac-x64/* upload/
-          rm -f upload/latest-mac.yml upload/signing-*.txt
+          # Both mac artifacts contain a latest-mac.yml, so copy everything except
+          # the per-arch feeds and signing markers, then write the merged feed.
+          for d in dist/windows dist/mac-arm64 dist/mac-x64; do
+            find "$d" -maxdepth 1 -type f ! -name latest-mac.yml ! -name 'signing-*.txt' -exec cp {} upload/ \;
+          done
           # One feed covering both Mac architectures (each runner wrote its own).
           node scripts/merge-mac-feed.mjs dist/mac-arm64/latest-mac.yml dist/mac-x64/latest-mac.yml > upload/latest-mac.yml
           ls -la upload
