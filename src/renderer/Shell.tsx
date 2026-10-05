@@ -3,6 +3,7 @@ import { useUi } from './store/ui'
 import { pb } from './lib/api'
 import Sidebar from './components/Sidebar'
 import Tour from './components/Tour'
+import UpdateToast from './components/UpdateToast'
 import Dashboard from './screens/Dashboard'
 import Stats from './screens/Stats'
 import Fans from './screens/Fans'
@@ -54,6 +55,7 @@ export default function Shell() {
         {route === 'help' && <Help />}
       </main>
       {tourOpen && <Tour />}
+      <UpdateToast />
     </div>
   )
 }

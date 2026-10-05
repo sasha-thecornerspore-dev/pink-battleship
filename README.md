@@ -6,6 +6,10 @@ Pink Battleship brings your platforms, earnings, fans, and content into one priv
 
 > **Status:** active development. Windows & macOS desktop app (Electron).
 
+## Download
+
+Grab the installer for your system from the [latest release](https://github.com/sasha-thecornerspore-dev/pink-battleship/releases/latest): Windows 10/11 (installer or portable), macOS Apple Silicon, or macOS Intel. Installed copies keep themselves current, and **Settings → Updates** switches between *Automatic* and *On demand*.
+
 ## Highlights
 
 - **Unified net P&L** across Chaturbate, OnlyFans, Fansly, ManyVids — gross → cuts → net, with configurable dated rate estimates.

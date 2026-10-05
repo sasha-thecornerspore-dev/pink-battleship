@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PbApiContract } from '@shared/ipc'
 import { createDemoBackend } from './demoBackend'
 
@@ -29,6 +30,14 @@ export const qk = {
   compliance: ['compliance'] as const,
   obs: ['obs'] as const,
   checkout: ['checkout'] as const,
+  updates: ['updates'] as const,
+}
+
+/** Update state, kept live by pushes from the main process. */
+export function useUpdates() {
+  const qc = useQueryClient()
+  useEffect(() => pb.updates.onChange((s) => qc.setQueryData(qk.updates, s)), [qc])
+  return useQuery({ queryKey: qk.updates, queryFn: () => pb.updates.state() })
 }
 
 export const usePnl = () => useQuery({ queryKey: qk.pnl, queryFn: () => pb.pnl.summary() })

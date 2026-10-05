@@ -1,10 +1,11 @@
 import { ipcMain, shell } from 'electron'
-import { IPC, type ImportCsvRequest, type ThemePref } from '@shared/ipc'
+import { IPC, type ImportCsvRequest, type ThemePref, type UpdateMode } from '@shared/ipc'
 import type { RateRule } from '@shared/models'
 import { isSafeExternalUrl } from '@core/system/externalLink'
+import type { UpdateController } from '@core/updates/updateController'
 import type { AppServices } from './services'
 
-export function registerIpc(services: AppServices): void {
+export function registerIpc(services: AppServices, updates: UpdateController): void {
   ipcMain.handle(IPC.vaultStatus, () => services.status())
   ipcMain.handle(IPC.vaultSetup, (_e, passphrase: string) => services.setup(passphrase))
   ipcMain.handle(IPC.vaultUnlock, (_e, passphrase: string) => ({ ok: services.unlock(passphrase) }))
@@ -71,6 +72,12 @@ export function registerIpc(services: AppServices): void {
   ipcMain.handle(IPC.systemOpenExternal, (_e, url: string) => {
     if (isSafeExternalUrl(url)) return shell.openExternal(url)
   })
+
+  ipcMain.handle(IPC.updatesState, () => updates.state())
+  ipcMain.handle(IPC.updatesSetMode, (_e, mode: UpdateMode) => updates.setMode(mode))
+  ipcMain.handle(IPC.updatesCheck, () => updates.check())
+  ipcMain.handle(IPC.updatesDownload, () => updates.download())
+  ipcMain.handle(IPC.updatesInstall, () => updates.install())
 
   ipcMain.handle(IPC.backupExport, (_e, password: string) => services.exportBackup(password))
   ipcMain.handle(IPC.backupRestore, (_e, password: string) => services.restoreBackup(password))

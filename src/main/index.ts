@@ -2,7 +2,8 @@ import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { AppServices } from './services'
 import { registerIpc } from './ipc'
-import { initAutoUpdate } from './updater'
+import { createUpdates } from './updater'
+import { RELEASE_HOST } from '@shared/release'
 import { registerThumbScheme, handleThumbProtocol } from './thumbProtocol'
 
 registerThumbScheme() // must run before app is ready
@@ -37,9 +38,10 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(() => {
   const services = new AppServices()
   handleThumbProtocol(services.thumbDir())
-  registerIpc(services)
+  const updates = createUpdates({ onCheck: () => services.recordEgress(RELEASE_HOST, 'Check for app updates') })
+  registerIpc(services, updates)
   createWindow()
-  initAutoUpdate()
+  updates.start()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

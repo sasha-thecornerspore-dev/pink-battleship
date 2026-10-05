@@ -19,32 +19,46 @@ asarUnpack:
   - "**/node_modules/ffmpeg-static/**"
   - "**/node_modules/ffprobe-static/**"
 
-# Publish to GitHub Releases (also the electron-updater feed). Owner/repo are
-# inferred from the `repository` field in package.json — update it to your repo.
+# The auto-update feed. Baked into every build as app-update.yml, so it must
+# point at a repo end users can read anonymously. Keep in sync with
+# src/shared/release.ts and RELEASE_REPO in .github/workflows/release.yml.
+# CI builds with --publish never; the workflow's publish job uploads.
 publish:
   provider: github
+  owner: sasha-thecornerspore-dev
+  repo: pink-battleship
   releaseType: release
 
+# File names avoid spaces (GitHub rewrites them, which breaks the update feed).
 win:
   target:
-    - nsis
-    - portable
-  artifactName: ${productName}-${version}-${arch}.${ext}
-  # Windows code signing: configure Azure Trusted Signing here (see docs/distribution.md).
-  # azureSignOptions is supplied via env/secrets in CI; do not commit certs.
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  # Windows code signing: Azure Trusted Signing options are passed by CI when
+  # the secrets exist (see docs/distribution.md). Do not commit certs.
 
 nsis:
+  artifactName: PinkBattleship-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   shortcutName: Pink Battleship
   createDesktopShortcut: always
 
+portable:
+  artifactName: PinkBattleship-Portable-${version}.${ext}
+
 mac:
+  # dmg for first install; zip is what electron-updater (Squirrel.Mac) downloads.
+  # Each runner builds its native arch (arm64 / x64) so native modules match.
   target:
     - dmg
+    - zip
+  artifactName: PinkBattleship-${version}-mac-${arch}.${ext}
   category: public.app-category.business
   hardenedRuntime: true
   gatekeeperAssess: false
-  artifactName: ${productName}-${version}-${arch}.${ext}
-  # Notarization via notarytool (App Store Connect API key) is supplied in CI.
+  # Signing identity + notarization (notarytool, App Store Connect API key) are
+  # supplied by CI when the secrets exist; otherwise the app is ad-hoc signed.

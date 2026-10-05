@@ -1,37 +1,194 @@
 name: Release
 
+# Push a tag (npm version patch && git push --follow-tags) to build installers
+# for every supported system and publish them + the auto-update feed.
 on:
   push:
     tags: ['v*']
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  # Where installers + the update feed are published. Must be readable by end
+  # users (public), and match `publish` in electron-builder.yml. Override with a
+  # repo variable RELEASE_REPO (e.g. a public "<name>-releases" repo); publishing
+  # to another repo needs a RELEASE_TOKEN secret with contents:write on it.
+  RELEASE_REPO: ${{ vars.RELEASE_REPO || github.repository }}
+
 jobs:
-  release:
+  build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - { name: windows, os: windows-latest }
+          - { name: mac-arm64, os: macos-latest }
+          - { name: mac-x64, os: macos-15-intel }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Tag must match package.json version
+        shell: bash
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          if [ "$v" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $v"
+            exit 1
+          fi
 
       - run: npm ci
       - run: npm test
       - run: npm run build
 
-      - name: Build, sign, and publish installers
-        run: npx electron-builder --publish always
+      - name: Package (sign when secrets are present)
+        shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # --- Windows signing (Azure Trusted Signing) — add these repo secrets:
-          # AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
-          # AZURE_CODE_SIGNING_ACCOUNT_NAME, AZURE_CERT_PROFILE_NAME
-          # --- macOS signing + notarization — add these repo secrets:
-          # CSC_LINK (base64 Developer ID .p12), CSC_KEY_PASSWORD,
-          # APPLE_API_KEY, APPLE_API_KEY_ID, APPLE_API_ISSUER
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          # macOS: Developer ID cert + App Store Connect API key for notarization
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          # Windows: Azure Trusted Signing
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT_NAME: ${{ secrets.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE_NAME: ${{ secrets.AZURE_CERT_PROFILE_NAME }}
+          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+        run: |
+          args=(--publish never)
+          signed=unsigned
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            if [ -n "$CSC_LINK" ]; then
+              signed=signed
+              if [ -n "$APPLE_API_KEY_P8" ]; then
+                printf '%s' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+                export APPLE_API_KEY="$RUNNER_TEMP/AuthKey.p8"
+              else
+                echo "::warning::CSC_LINK is set but APPLE_API_KEY is not — the app will be signed but not notarized."
+              fi
+            else
+              echo "::warning::No CSC_LINK secret — macOS build is ad-hoc signed. Gatekeeper will warn on first open, and Squirrel.Mac can't apply updates in place (the app links to the download instead)."
+              unset CSC_LINK CSC_KEY_PASSWORD
+              export CSC_IDENTITY_AUTO_DISCOVERY=false
+              # Hardened runtime is only for notarization; with ad-hoc signing it
+              # trips library validation on the native modules and the app won't launch.
+              args+=(-c.mac.identity=- -c.mac.hardenedRuntime=false)
+            fi
+          else
+            if [ -n "$AZURE_CLIENT_ID" ]; then
+              signed=signed
+              args+=(
+                "-c.win.azureSignOptions.publisherName=$AZURE_PUBLISHER_NAME"
+                "-c.win.azureSignOptions.endpoint=$AZURE_ENDPOINT"
+                "-c.win.azureSignOptions.codeSigningAccountName=$AZURE_CODE_SIGNING_ACCOUNT_NAME"
+                "-c.win.azureSignOptions.certificateProfileName=$AZURE_CERT_PROFILE_NAME"
+              )
+            else
+              echo "::warning::No Azure Trusted Signing secrets — Windows build is unsigned. SmartScreen will warn on first run."
+              unset CSC_LINK CSC_KEY_PASSWORD
+            fi
+          fi
+          npx electron-builder "${args[@]}"
+          echo "$signed" > "release/signing-${{ matrix.name }}.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/latest*.yml
+            release/signing-*.txt
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Assemble release files
+        run: |
+          mkdir upload
+          cp dist/windows/* dist/mac-arm64/* dist/mac-x64/* upload/
+          rm -f upload/latest-mac.yml upload/signing-*.txt
+          # One feed covering both Mac architectures (each runner wrote its own).
+          node scripts/merge-mac-feed.mjs dist/mac-arm64/latest-mac.yml dist/mac-x64/latest-mac.yml > upload/latest-mac.yml
+          ls -la upload
+
+      - name: Write release notes
+        run: |
+          tag="$GITHUB_REF_NAME"; v="${tag#v}"
+          base="https://github.com/$RELEASE_REPO/releases/download/$tag"
+          prev="$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null || true)"
+          {
+            echo "## Download"
+            echo
+            echo "| System | Installer |"
+            echo "|---|---|"
+            echo "| Windows 10 / 11 | [PinkBattleship-Setup-$v.exe]($base/PinkBattleship-Setup-$v.exe) |"
+            echo "| Windows, portable (no install, no auto-update) | [PinkBattleship-Portable-$v.exe]($base/PinkBattleship-Portable-$v.exe) |"
+            echo "| macOS, Apple Silicon (M1 and newer) | [PinkBattleship-$v-mac-arm64.dmg]($base/PinkBattleship-$v-mac-arm64.dmg) |"
+            echo "| macOS, Intel | [PinkBattleship-$v-mac-x64.dmg]($base/PinkBattleship-$v-mac-x64.dmg) |"
+            echo
+            echo "Already installed? The app updates itself — **Settings → Updates** lets you choose *Automatic* or *On demand*."
+            echo
+            if grep -q unsigned dist/*/signing-*.txt; then
+              echo "### First launch on an unsigned build"
+              if grep -q unsigned dist/windows/signing-*.txt; then
+                echo "- **Windows:** if SmartScreen appears, click *More info → Run anyway*."
+              fi
+              if grep -q unsigned dist/mac-*/signing-*.txt; then
+                echo "- **macOS:** open the app once, then go to *System Settings → Privacy & Security* and click *Open Anyway*. Updates on macOS are downloaded from this page until the build is signed."
+              fi
+              echo
+            fi
+            echo "## Changes"
+            echo
+            if [ -n "$prev" ]; then git log --no-merges --pretty='- %s' "$prev..$tag"; else git log --no-merges --pretty='- %s' -n 30 "$tag"; fi
+          } > notes.md
+          cat notes.md
+
+      - name: Publish to GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          # Upload as a draft first so clients never see a half-uploaded feed.
+          if gh release view "$tag" -R "$RELEASE_REPO" >/dev/null 2>&1; then
+            gh release upload "$tag" upload/* -R "$RELEASE_REPO" --clobber
+            gh release edit "$tag" -R "$RELEASE_REPO" --notes-file notes.md
+          else
+            target=()
+            [ "$RELEASE_REPO" = "$GITHUB_REPOSITORY" ] && target=(--verify-tag)
+            gh release create "$tag" upload/* -R "$RELEASE_REPO" "${target[@]}" --draft \
+              --title "Pink Battleship $tag" --notes-file notes.md
+          fi
+          gh release edit "$tag" -R "$RELEASE_REPO" --draft=false --latest

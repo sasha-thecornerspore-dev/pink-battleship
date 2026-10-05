@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRates, usePrivacy, pb, qk } from '../lib/api'
+import { useRates, usePrivacy, useUpdates, pb, qk } from '../lib/api'
 import { useUi } from '../store/ui'
 import { THEMES } from '../theme/themes'
 import ExternalLink from '../components/ExternalLink'
 import { PROVIDER_KEY_URLS, LINKS } from '../lib/links'
 import type { AssistantProvider, RateRule, ThemeId, ThemeMode } from '@shared/models'
+import type { UpdateMode, UpdateState } from '@shared/ipc'
 
 const PLATFORM_LABEL: Record<string, string> = {
   chaturbate: 'Chaturbate',
@@ -76,6 +77,8 @@ export default function Settings() {
         </div>
       </Section>
 
+      <UpdatesSection />
+
       <Section
         title="Platform rates (estimates)"
         subtitle="Used to compute net from gross. Defaults are rough estimates — adjust to your real terms."
@@ -96,7 +99,7 @@ export default function Settings() {
 
       <Section
         title="What leaves your machine"
-        subtitle="Every declared outbound destination and the live egress log. In this build, only an official Chaturbate connector would ever reach the network."
+        subtitle="Every declared outbound destination and the live egress log. Beyond connectors and AI providers you’ve added, the only other traffic is update checks to github.com (see Updates above)."
       >
         {(privacyQ.data?.declared ?? []).length === 0 ? (
           <span style={{ fontSize: 13, color: 'var(--pb-text-muted)' }}>No connectors yet.</span>
@@ -135,6 +138,98 @@ export default function Settings() {
       </Section>
     </div>
   )
+}
+
+const UPDATE_MODES: { id: UpdateMode; label: string; hint: string }[] = [
+  { id: 'auto', label: 'Automatic', hint: 'Checks GitHub shortly after launch and every few hours, downloads in the background, and installs when you quit.' },
+  { id: 'manual', label: 'On demand', hint: 'Never checks on its own. Nothing leaves your machine for updates until you click “Check for updates”.' },
+]
+
+function UpdatesSection() {
+  const qc = useQueryClient()
+  const q = useUpdates()
+  const s = q.data
+  const [busy, setBusy] = useState(false)
+  if (!s) return null
+
+  const run = async (fn: () => Promise<UpdateState>) => {
+    setBusy(true)
+    try {
+      qc.setQueryData(qk.updates, await fn())
+    } finally {
+      setBusy(false)
+    }
+  }
+  const mode = UPDATE_MODES.find((m) => m.id === s.mode) ?? UPDATE_MODES[0]
+
+  return (
+    <Section title="Updates" subtitle={`You’re on version ${s.currentVersion}.`}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+        {UPDATE_MODES.map((m) => (
+          <button key={m.id} className={s.mode === m.id ? 'pb-btn pb-btn-primary' : 'pb-btn'} onClick={() => run(() => pb.updates.setMode(m.id))}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <p style={{ fontSize: 12, color: 'var(--pb-text-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>{mode.hint}</p>
+
+      {!s.supported ? (
+        <div style={{ fontSize: 12, color: 'var(--pb-text-muted)', lineHeight: 1.5 }}>
+          {s.unsupportedReason} <ExternalLink href={s.releasesUrl}>Open releases page ↗</ExternalLink>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {s.phase === 'available' && (
+              <button className="pb-btn pb-btn-primary" disabled={busy} onClick={() => run(() => pb.updates.download())}>
+                Download {s.availableVersion}
+              </button>
+            )}
+            {s.phase === 'ready' && (
+              <button className="pb-btn pb-btn-primary" onClick={() => void pb.updates.install()}>
+                Restart &amp; install {s.availableVersion}
+              </button>
+            )}
+            {s.phase !== 'ready' && s.phase !== 'downloading' && (
+              <button className="pb-btn" disabled={busy || s.phase === 'checking'} onClick={() => run(() => pb.updates.check())}>
+                {s.phase === 'checking' ? 'Checking…' : 'Check for updates'}
+              </button>
+            )}
+            <span style={{ fontSize: 12, color: s.phase === 'error' ? 'var(--pb-danger)' : 'var(--pb-text-muted)' }}>{updateStatusText(s)}</span>
+          </div>
+          {s.phase === 'downloading' && (
+            <div style={{ height: 6, borderRadius: 3, background: 'var(--pb-track)', marginTop: 10, overflow: 'hidden' }}>
+              <div style={{ width: `${s.percent ?? 0}%`, height: '100%', background: 'var(--pb-primary)', transition: 'width 0.3s' }} />
+            </div>
+          )}
+          {s.phase === 'error' && (
+            <div style={{ fontSize: 12, color: 'var(--pb-text-muted)', marginTop: 8 }}>
+              You can always install manually: <ExternalLink href={s.releasesUrl}>download the latest release ↗</ExternalLink>
+            </div>
+          )}
+        </>
+      )}
+    </Section>
+  )
+}
+
+function updateStatusText(s: UpdateState): string {
+  switch (s.phase) {
+    case 'checking':
+      return ''
+    case 'up-to-date':
+      return 'You’re up to date.'
+    case 'available':
+      return `Version ${s.availableVersion} is available.`
+    case 'downloading':
+      return `Downloading ${s.availableVersion ?? 'update'}… ${s.percent ?? 0}%`
+    case 'ready':
+      return 'Downloaded — installs when you restart or quit.'
+    case 'error':
+      return `Couldn’t update: ${s.error}`
+    default:
+      return s.lastCheckedAt ? `Last checked ${new Date(s.lastCheckedAt).toLocaleString()}` : ''
+  }
 }
 
 function BackupSection() {

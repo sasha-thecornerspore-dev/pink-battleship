@@ -1,4 +1,5 @@
-import type { PbApiContract, VaultStatus, PrivacyReport } from '@shared/ipc'
+import type { PbApiContract, VaultStatus, PrivacyReport, UpdateState } from '@shared/ipc'
+import { RELEASES_URL } from '@shared/release'
 import type { ConnectorInfo, ObsStatus, RateRule, ThemeId, ThemeMode, Transaction } from '@shared/models'
 import { InMemoryDatabase } from '@core/db/inMemoryDatabase'
 import { PnlService } from '@core/pnl/pnlService'
@@ -364,6 +365,33 @@ export function createDemoBackend(): PbApiContract {
         return Promise.resolve()
       },
     },
+    updates: (() => {
+      // The browser demo can't install anything; show the controls, point at the releases page.
+      let state: UpdateState = {
+        mode: 'auto',
+        phase: 'idle',
+        currentVersion: 'demo',
+        supported: false,
+        unsupportedReason: 'This is the browser prototype — updates run in the installed desktop app.',
+        releasesUrl: RELEASES_URL,
+      }
+      const listeners = new Set<(s: UpdateState) => void>()
+      return {
+        state: () => Promise.resolve(state),
+        setMode: (mode) => {
+          state = { ...state, mode }
+          listeners.forEach((l) => l(state))
+          return Promise.resolve(state)
+        },
+        check: () => Promise.resolve(state),
+        download: () => Promise.resolve(state),
+        install: () => Promise.resolve(),
+        onChange: (l) => {
+          listeners.add(l)
+          return () => listeners.delete(l)
+        },
+      }
+    })(),
     checkout: {
       listPaid: () => Promise.resolve(co().listPaid()),
       setPaid: (galleryId, config: PaidConfig | null) => {

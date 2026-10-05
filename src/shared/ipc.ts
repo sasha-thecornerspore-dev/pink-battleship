@@ -23,6 +23,26 @@ export interface PrivacyReport {
   log: EgressEntry[]
 }
 
+/** `auto` checks in the background and downloads on its own; `manual` only checks when asked. */
+export type UpdateMode = 'auto' | 'manual'
+
+export type UpdatePhase = 'idle' | 'checking' | 'up-to-date' | 'available' | 'downloading' | 'ready' | 'error'
+
+export interface UpdateState {
+  mode: UpdateMode
+  phase: UpdatePhase
+  currentVersion: string
+  /** False in dev and portable builds — those can't replace themselves; point at the releases page instead. */
+  supported: boolean
+  unsupportedReason?: string
+  availableVersion?: string
+  /** 0–100 while downloading. */
+  percent?: number
+  error?: string
+  lastCheckedAt?: string
+  releasesUrl: string
+}
+
 /** The complete, typed surface exposed on `window.pb`. Preload implements it; renderer consumes it. */
 export interface PbApiContract {
   vault: {
@@ -106,6 +126,16 @@ export interface PbApiContract {
   system: {
     openExternal(url: string): Promise<void>
   }
+  updates: {
+    state(): Promise<UpdateState>
+    setMode(mode: UpdateMode): Promise<UpdateState>
+    check(): Promise<UpdateState>
+    download(): Promise<UpdateState>
+    /** Quits and runs the installer for a downloaded update. */
+    install(): Promise<void>
+    /** Subscribe to state pushes from the main process; returns an unsubscribe. */
+    onChange(listener: (state: UpdateState) => void): () => void
+  }
   backup: {
     export(password: string): Promise<string | null>
     restore(password: string): Promise<{ ok: boolean; error?: string; transactions?: number; connectors?: number }>
@@ -172,6 +202,12 @@ export const IPC = {
   websiteSave: 'website:save',
   websiteExport: 'website:export',
   systemOpenExternal: 'system:open-external',
+  updatesState: 'updates:state',
+  updatesSetMode: 'updates:set-mode',
+  updatesCheck: 'updates:check',
+  updatesDownload: 'updates:download',
+  updatesInstall: 'updates:install',
+  updatesChanged: 'updates:changed',
   backupExport: 'backup:export',
   backupRestore: 'backup:restore',
   checkoutListPaid: 'checkout:list-paid',

@@ -83,6 +83,18 @@ const api: PbApiContract = {
   system: {
     openExternal: (url) => ipcRenderer.invoke(IPC.systemOpenExternal, url),
   },
+  updates: {
+    state: () => ipcRenderer.invoke(IPC.updatesState),
+    setMode: (mode) => ipcRenderer.invoke(IPC.updatesSetMode, mode),
+    check: () => ipcRenderer.invoke(IPC.updatesCheck),
+    download: () => ipcRenderer.invoke(IPC.updatesDownload),
+    install: () => ipcRenderer.invoke(IPC.updatesInstall),
+    onChange: (listener) => {
+      const handler = (_e: Electron.IpcRendererEvent, state: Parameters<typeof listener>[0]) => listener(state)
+      ipcRenderer.on(IPC.updatesChanged, handler)
+      return () => ipcRenderer.removeListener(IPC.updatesChanged, handler)
+    },
+  },
   backup: {
     export: (password) => ipcRenderer.invoke(IPC.backupExport, password),
     restore: (password) => ipcRenderer.invoke(IPC.backupRestore, password),

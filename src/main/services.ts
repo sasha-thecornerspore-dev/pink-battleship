@@ -66,6 +66,11 @@ export class AppServices {
     this.db?.appendEgress(e)
   }
 
+  /** Log app-level traffic that doesn't go through the gateway (e.g. update checks). Dropped while locked. */
+  recordEgress(host: string, purpose: string): void {
+    this.onEgress({ ts: new Date().toISOString(), connectorId: null, host, purpose })
+  }
+
   private requireDb(): Database {
     if (!this.db) throw new Error('Vault is locked')
     return this.db
